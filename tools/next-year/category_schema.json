@@ -1,0 +1,446 @@
+{
+  "outstanding_drama_series": {
+    "label": "Drama Series",
+    "icon": "🎭",
+    "group": "Series/Program",
+    "type": "Drama"
+  },
+  "outstanding_lead_actor_in_a_drama_series": {
+    "label": "Lead Actor In A Drama Series",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_lead_actress_in_a_drama_series": {
+    "label": "Lead Actress In A Drama Series",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_supporting_actor_in_a_drama_series": {
+    "label": "Supporting Actor In A Drama Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_supporting_actress_in_a_drama_series": {
+    "label": "Supporting Actress In A Drama Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_guest_actor_in_a_drama_series": {
+    "label": "Guest Actor In A Drama Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_guest_actress_in_a_drama_series": {
+    "label": "Guest Actress In A Drama Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Drama"
+  },
+  "outstanding_writing_for_a_drama_series": {
+    "label": "Writing For A Drama Series",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Drama"
+  },
+  "outstanding_directing_for_a_drama_series": {
+    "label": "Directing For A Drama Series",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Drama"
+  },
+  "outstanding_comedy_series": {
+    "label": "Comedy Series",
+    "icon": "😂",
+    "group": "Series/Program",
+    "type": "Comedy"
+  },
+  "outstanding_lead_actor_in_a_comedy_series": {
+    "label": "Lead Actor In A Comedy Series",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_lead_actress_in_a_comedy_series": {
+    "label": "Lead Actress In A Comedy Series",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_supporting_actor_in_a_comedy_series": {
+    "label": "Supporting Actor In A Comedy Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_supporting_actress_in_a_comedy_series": {
+    "label": "Supporting Actress In A Comedy Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_guest_actor_in_a_comedy_series": {
+    "label": "Guest Actor In A Comedy Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_guest_actress_in_a_comedy_series": {
+    "label": "Guest Actress In A Comedy Series",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Comedy"
+  },
+  "outstanding_writing_for_a_comedy_series": {
+    "label": "Writing For A Comedy Series",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Comedy"
+  },
+  "outstanding_directing_for_a_comedy_series": {
+    "label": "Directing For A Comedy Series",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Comedy"
+  },
+  "outstanding_limited_or_anthology_series": {
+    "label": "Limited Or Anthology Series",
+    "icon": "📺",
+    "group": "Series/Program",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_movie": {
+    "label": "Movie",
+    "icon": "🎬",
+    "group": "Series/Program",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_lead_actor_in_a_limited_or_anthology_series_or_movie": {
+    "label": "Lead Actor In A Limited Or Anthology Series Or Movie",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_lead_actress_in_a_limited_or_anthology_series_or_movie": {
+    "label": "Lead Actress In A Limited Or Anthology Series Or Movie",
+    "icon": "🌟",
+    "group": "Performance",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_supporting_actor_in_a_limited_or_anthology_series_or_movie": {
+    "label": "Supporting Actor In A Limited Or Anthology Series Or Movie",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_supporting_actress_in_a_limited_or_anthology_series_or_movie": {
+    "label": "Supporting Actress In A Limited Or Anthology Series Or Movie",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_writing_for_a_limited_or_anthology_series_or_movie": {
+    "label": "Writing For A Limited Or Anthology Series Or Movie",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_directing_for_a_limited_or_anthology_series_or_movie": {
+    "label": "Directing For A Limited Or Anthology Series Or Movie",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Limited/Anthology"
+  },
+  "outstanding_variety_series": {
+    "label": "Variety Series",
+    "icon": "🎪",
+    "group": "Series/Program",
+    "type": "Variety"
+  },
+  "outstanding_variety_special_pre_recorded": {
+    "label": "Variety Special (Pre-Recorded)",
+    "icon": "✨",
+    "group": "Series/Program",
+    "type": "Variety"
+  },
+  "outstanding_writing_for_a_variety_series": {
+    "label": "Writing For A Variety Series",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Variety"
+  },
+  "outstanding_writing_for_a_variety_special": {
+    "label": "Writing For A Variety Special",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Variety"
+  },
+  "outstanding_directing_for_a_variety_series": {
+    "label": "Directing For A Variety Series",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Variety"
+  },
+  "outstanding_directing_for_a_variety_special": {
+    "label": "Directing For A Variety Special",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Variety"
+  },
+  "outstanding_reality_competition_program": {
+    "label": "Reality Competition Program",
+    "icon": "🏆",
+    "group": "Series/Program",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_structured_reality_program": {
+    "label": "Structured Reality Program",
+    "icon": "🏆",
+    "group": "Series/Program",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_unstructured_reality_program": {
+    "label": "Unstructured Reality Program",
+    "icon": "🏆",
+    "group": "Series/Program",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_game_show": {
+    "label": "Game Show",
+    "icon": "🎮",
+    "group": "Series/Program",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_host_for_a_reality_or_reality_competition_program": {
+    "label": "Host For A Reality Or Reality Competition Program",
+    "icon": "🎙️",
+    "group": "Performance",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_host_for_a_game_show": {
+    "label": "Host For A Game Show",
+    "icon": "🎙️",
+    "group": "Performance",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_directing_for_a_reality_program": {
+    "label": "Directing For A Reality Program",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Reality/Game Show"
+  },
+  "outstanding_documentary_or_nonfiction_series": {
+    "label": "Documentary Or Nonfiction Series",
+    "icon": "🎥",
+    "group": "Series/Program",
+    "type": "Documentary"
+  },
+  "outstanding_documentary_or_nonfiction_special": {
+    "label": "Documentary Or Nonfiction Special",
+    "icon": "🎥",
+    "group": "Series/Program",
+    "type": "Documentary"
+  },
+  "outstanding_hosted_nonfiction_series_or_special": {
+    "label": "Hosted Nonfiction Series Or Special",
+    "icon": "🎙️",
+    "group": "Series/Program",
+    "type": "Documentary"
+  },
+  "exceptional_merit_in_documentary_filmmaking": {
+    "label": "Exceptional Merit In Documentary Filmmaking",
+    "icon": "🎥",
+    "group": "Series/Program",
+    "type": "Documentary"
+  },
+  "outstanding_narrator": {
+    "label": "Narrator",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Documentary"
+  },
+  "outstanding_writing_for_a_nonfiction_program": {
+    "label": "Writing For A Nonfiction Program",
+    "icon": "✍️",
+    "group": "Writing",
+    "type": "Documentary"
+  },
+  "outstanding_directing_for_a_documentary_nonfiction_program": {
+    "label": "Directing For A Documentary/Nonfiction Program",
+    "icon": "🎬",
+    "group": "Directing",
+    "type": "Documentary"
+  },
+  "outstanding_production_design_for_a_narrative_contemporary_program_one_hour_or_more": {
+    "label": "Production Design For A Narrative Contemporary Program (One Hour Or More)",
+    "icon": "🎨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_production_design_for_a_narrative_period_or_fantasy_program_one_hour_or_more": {
+    "label": "Production Design For A Narrative Period Or Fantasy Program (One Hour Or More)",
+    "icon": "🎨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_production_design_for_a_narrative_program_half_hour": {
+    "label": "Production Design For A Narrative Program (Half-Hour)",
+    "icon": "🎨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_production_design_for_a_variety_or_reality_series": {
+    "label": "Production Design For A Variety Or Reality Series",
+    "icon": "🎨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_choreography_for_scripted_programming": {
+    "label": "Choreography For Scripted Programming",
+    "icon": "💃",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_cinematography_for_a_series_half_hour": {
+    "label": "Cinematography For A Series (Half-Hour)",
+    "icon": "🎥",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_cinematography_for_a_series_one_hour": {
+    "label": "Cinematography For A Series (One Hour)",
+    "icon": "🎥",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_cinematography_for_a_nonfiction_program": {
+    "label": "Cinematography For A Nonfiction Program",
+    "icon": "🎥",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_cinematography_for_a_reality_program": {
+    "label": "Cinematography For A Reality Program",
+    "icon": "🎥",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_commercial": {
+    "label": "Commercial",
+    "icon": "📺",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_period_costumes": {
+    "label": "Period Costumes",
+    "icon": "👗",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_fantasy_sci_fi_costumes": {
+    "label": "Fantasy/Sci-Fi Costumes",
+    "icon": "👗",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_contemporary_costumes_for_a_series": {
+    "label": "Contemporary Costumes For A Series",
+    "icon": "👗",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_period_or_fantasy_sci_fi_hairstyling": {
+    "label": "Period Or Fantasy/Sci-Fi Hairstyling",
+    "icon": "💇",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_title_design": {
+    "label": "Title Design",
+    "icon": "🔤",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_contemporary_makeup_non_prosthetic": {
+    "label": "Contemporary Makeup (Non-Prosthetic)",
+    "icon": "💄",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_period_or_fantasy_sci_fi_makeup_non_prosthetic": {
+    "label": "Period Or Fantasy/Sci-Fi Makeup (Non-Prosthetic)",
+    "icon": "💄",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_prosthetic_makeup": {
+    "label": "Prosthetic Makeup",
+    "icon": "💄",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_music_composition_for_a_series_original_dramatic_score": {
+    "label": "Music Composition For A Series (Original Dramatic Score)",
+    "icon": "🎼",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_original_music_and_lyrics": {
+    "label": "Original Music And Lyrics",
+    "icon": "🎼",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_original_main_title_theme_music": {
+    "label": "Original Main Title Theme Music",
+    "icon": "🎼",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_music_supervision": {
+    "label": "Music Supervision",
+    "icon": "🎼",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_special_visual_effects_in_a_season_or_a_movie": {
+    "label": "Special Visual Effects In A Season Or A Movie",
+    "icon": "✨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_special_visual_effects_in_a_single_episode": {
+    "label": "Special Visual Effects In A Single Episode",
+    "icon": "✨",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_stunt_coordination_for_drama_programming": {
+    "label": "Stunt Coordination For Drama Programming",
+    "icon": "🤸",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_stunt_coordination_for_comedy_programming": {
+    "label": "Stunt Coordination For Comedy Programming",
+    "icon": "🤸",
+    "group": "Craft",
+    "type": "Craft"
+  },
+  "outstanding_animated_program": {
+    "label": "Animated Program",
+    "icon": "🎨",
+    "group": "Series/Program",
+    "type": "Other"
+  },
+  "outstanding_character_voice_over_performance": {
+    "label": "Character Voice-Over Performance",
+    "icon": "🎭",
+    "group": "Performance",
+    "type": "Other"
+  }
+}
