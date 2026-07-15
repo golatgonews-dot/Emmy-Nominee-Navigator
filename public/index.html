@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Emmy Tracker 2026</title>
+<title>Emmy Navigator 2026</title>
 
 <!-- Home screen icon (iOS) -->
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Emmy Tracker">
+<meta name="apple-mobile-web-app-title" content="Emmy Navigator">
 
 <!-- Home screen icon (Android/Chrome) + browser tab icon -->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -45,9 +45,9 @@
     background: linear-gradient(180deg, var(--bg) 80%, transparent);
     padding: 18px 0 10px;
   }
-  .title-row { display: flex; align-items: center; gap: 12px; }
-  .title-row h1 { font-size: 21px; margin: 0; font-weight: 700; letter-spacing: -0.2px; }
-  .title-row .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .title-row { display: flex; align-items: center; gap: 16px; }
+  .title-row h1 { font-size: 26px; margin: 0; font-weight: 700; letter-spacing: -0.2px; }
+  .title-row .sub { color: var(--gold); font-size: 15px; font-weight: 700; letter-spacing: 0.02em; margin-top: 3px; }
 
   .overall {
     display: flex; align-items: center; gap: 14px;
@@ -212,6 +212,27 @@
   .filter-pill.active { background: rgba(212,175,55,.15); border-color: var(--gold); color: var(--gold); font-weight: 600; }
   .hidden-note { color: var(--muted); font-size: 11.5px; text-align: center; padding: 9px 14px; }
 
+  /* footer / about */
+  .app-footer { text-align: center; padding: 24px 0 12px; }
+  .footer-link {
+    color: var(--muted); font-size: 11.5px; cursor: pointer;
+    text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px;
+  }
+  .footer-link:hover { color: var(--text); }
+  .about-body { margin-top: 16px; }
+  .about-body p { font-size: 13px; line-height: 1.55; color: var(--text); margin: 0 0 16px; }
+  .about-section-lbl {
+    font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .04em; margin-bottom: 8px;
+  }
+  .tmdb-credit {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+  }
+  .tmdb-logo { height: 11px; width: auto; max-width: 100%; display: block; }
+  .tmdb-disclaimer { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 0 0 16px; }
+  .about-meta { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+
   /* posters */
   .poster-thumb { border-radius: 6px; object-fit: cover; background: var(--card-2); display: block; flex-shrink: 0; }
   .poster-thumb.sm { width: 34px; height: 49px; }
@@ -265,10 +286,10 @@
 <div id="app">
   <header class="top">
     <div class="title-row">
-      <div style="font-size:26px;">🏆</div>
+      <div style="font-size:44px; line-height:1;">🏆</div>
       <div>
-        <h1>Emmy Tracker 2026</h1>
-        <div class="sub">Series, performance, directing &amp; writing nominees</div>
+        <h1>Emmy Navigator</h1>
+        <div class="sub">2026 Awards Tracker</div>
       </div>
     </div>
 
@@ -302,7 +323,7 @@
     </div>
 
     <div class="filter-row">
-      <span class="filter-pill" id="focusModeToggle">🎯 Focus Mode</span>
+      <span class="filter-pill" id="focusModeToggle">🎯 Key Categories</span>
       <span class="filter-pill" id="hideCompletedToggle">✓ Hide completed</span>
       <span class="filter-pill" id="collapseAllBtn">⌃ Collapse all</span>
     </div>
@@ -312,6 +333,10 @@
 
   <div class="cat-list" id="catList"></div>
   <div class="empty-state" id="emptyState" style="display:none;">No matches.</div>
+
+  <footer class="app-footer">
+    <span class="footer-link" id="aboutBtn">About &amp; Credits</span>
+  </footer>
 </div>
 
 <div id="overlay">
@@ -689,6 +714,28 @@ function openServicesModal() {
     document.getElementById("detailClose").addEventListener("click", closeDetail);
   }
   render();
+  overlay.classList.add("show");
+}
+
+function openAboutModal() {
+  const detail = document.getElementById("detail");
+  const overlay = document.getElementById("overlay");
+  detail.innerHTML =
+    '<div class="detail-head">' +
+      '<div style="flex:1"><h2>🏆 About Emmy Navigator</h2></div>' +
+      '<div class="detail-close" id="detailClose">✕</div>' +
+    '</div>' +
+    '<div class="about-body">' +
+      '<p>A personal tracker for the 2026 Emmy nominees — check off what you\'ve watched, mark predictions and picks, and see what\'s left before the ceremony.</p>' +
+      '<div class="about-section-lbl">Data &amp; streaming availability</div>' +
+      '<div class="tmdb-credit">' +
+        '<img src="/tmdb/tmdb-logo.svg" alt="The Movie Database (TMDB) logo" class="tmdb-logo">' +
+      '</div>' +
+      '<p class="tmdb-disclaimer">This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</p>' +
+      '<div class="about-section-lbl">Ceremony</div>' +
+      '<p class="about-meta">78th Primetime Emmy Awards — September 14, 2026.</p>' +
+    '</div>';
+  document.getElementById("detailClose").addEventListener("click", closeDetail);
   overlay.classList.add("show");
 }
 
@@ -1076,6 +1123,7 @@ document.getElementById("hideCompletedToggle").addEventListener("click", () => {
   renderAll();
 });
 document.getElementById("manageServicesBtn").addEventListener("click", openServicesModal);
+document.getElementById("aboutBtn").addEventListener("click", openAboutModal);
 
 /* ---------- init ---------- */
 renderAll();
