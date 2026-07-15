@@ -29,6 +29,15 @@ const BUNDLERS = new Set([
   "Xfinity Stream",
 ]);
 
+// Add-on "channel" resellers: the SAME app sold through another store
+// (e.g. "HBO Max Amazon Channel"). We strip the suffix so it collapses back to
+// the native app and dedupes with it. This anchors to specific reseller names,
+// so it won't touch a legitimate provider that merely contains the word.
+const RESELLER_SUFFIX =
+  /\s+(Amazon Channel|Apple TV Channel|Roku Premium Channel|Prime Video Channel)$/i;
+
+const baseName = (name) => name.replace(RESELLER_SUFFIX, "").trim();
+
 exports.handler = async (event) => {
   const { tmdbId, mediaType, fallback } = parseInput(event);
 
@@ -56,14 +65,28 @@ async function nativeStreamers(tmdbId, mediaType) {
   // "(buy)" buttons. (Add us.ads / us.free here if you want free options too.)
   const flatrate = us.flatrate || [];
 
-  return flatrate
-    .filter((p) => !BUNDLERS.has(p.provider_name)) // drop repackagers (e.g. YouTube TV)
-    .sort((a, b) => (a.display_priority ?? 999) - (b.display_priority ?? 999))
-    .map((p) => ({
-      name: p.provider_name,
-      logo: p.logo_path ? `${TMDB_LOGO_BASE}${p.logo_path}` : null,
-      source: "tmdb",
-    }));
+  // Collapse to one entry per base app. Live-TV bundlers are dropped outright;
+  // reseller "channel" variants are folded into their native app, and when both
+  // the native and a reseller entry exist we keep the native one (name + logo).
+  const chosen = new Map();
+  for (const p of flatrate) {
+    if (BUNDLERS.has(p.provider_name)) continue; // drop live-TV bundlers
+    const base = baseName(p.provider_name);
+    const isNative = base === p.provider_name;
+    const prev = chosen.get(base);
+    if (!prev || (isNative && !prev.isNative)) {
+      chosen.set(base, {
+        name: base,
+        logo: p.logo_path ? `${TMDB_LOGO_BASE}${p.logo_path}` : null,
+        priority: p.display_priority ?? 999,
+        isNative,
+      });
+    }
+  }
+
+  return [...chosen.values()]
+    .sort((a, b) => a.priority - b.priority)
+    .map(({ name, logo }) => ({ name, logo, source: "tmdb" }));
 }
 
 // ---- helpers ----
