@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Emmy Tracker 2026</title>
+<style>
+  :root {
+    --bg: #0e0e12;
+    --card: #17171d;
+    --card-2: #1e1e26;
+    --border: #2a2a33;
+    --text: #f2f1ec;
+    --muted: #9a99a6;
+    --gold: #d4af37;
+    --gold-dim: #8a7326;
+    --green: #3fb950;
+    --pink: #e0568c;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 640px; margin: 0 auto; padding: 0 14px 90px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: linear-gradient(180deg, var(--bg) 80%, transparent);
+    padding: 18px 0 10px;
+  }
+  .title-row { display: flex; align-items: center; gap: 12px; }
+  .title-row h1 { font-size: 21px; margin: 0; font-weight: 700; letter-spacing: -0.2px; }
+  .title-row .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+  .overall {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; margin-top: 14px;
+  }
+  .overall .stats { flex: 1; }
+  .overall .stats .big { font-size: 22px; font-weight: 700; }
+  .overall .stats .lbl { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .overall .saved { color: var(--muted); font-size: 11px; margin-top: 6px; }
+  .overall .picks-summary { color: var(--muted); font-size: 11px; margin-top: 3px; }
+
+  .search-wrap { margin-top: 12px; position: relative; }
+  .search-wrap input {
+    width: 100%; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 10px 32px 10px 12px; font-size: 14px;
+    outline: none;
+  }
+  .search-wrap input:focus { border-color: var(--gold-dim); }
+  .search-clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 13px; cursor: pointer; display: none;
+    width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center;
+  }
+  .search-clear.show { display: flex; }
+  .search-clear:hover { color: var(--text); }
+
+  .tabs {
+    display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    white-space: nowrap; padding: 7px 13px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 12.5px; cursor: pointer; user-select: none;
+  }
+  .tab.active { background: var(--gold); color: #1a1608; border-color: var(--gold); font-weight: 600; }
+
+  .cat-list { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .cat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .cat-head { display: flex; align-items: center; gap: 11px; padding: 13px 14px; cursor: pointer; }
+  .cat-icon { font-size: 19px; width: 26px; text-align: center; }
+  .cat-info { flex: 1; min-width: 0; }
+  .cat-info .name { font-size: 14.5px; font-weight: 600; line-height: 1.25; }
+  .cat-info .grp { font-size: 11px; color: var(--muted); margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+  .cat-pick-dot { font-size: 10.5px; }
+  .cat-count { font-size: 11.5px; color: var(--muted); margin-right: 2px; white-space: nowrap; }
+  .chev { color: var(--muted); font-size: 12px; transition: transform .15s ease; }
+  .cat-card.open .chev { transform: rotate(90deg); }
+
+  .ring { flex-shrink: 0; }
+  .ring circle.track { stroke: var(--border); fill: none; }
+  .ring circle.prog { stroke: var(--gold); fill: none; stroke-linecap: round; transition: stroke-dashoffset .35s ease; }
+  .ring.done circle.prog { stroke: var(--green); }
+
+  .nom-list { border-top: 1px solid var(--border); }
+  .nom-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 14px; border-bottom: 1px solid var(--border);
+  }
+  .nom-row:last-child { border-bottom: none; }
+  .nom-check {
+    width: 21px; height: 21px; border-radius: 6px; border: 1.5px solid var(--muted);
+    flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    background: transparent; transition: background .15s ease, border-color .15s ease;
+  }
+  .nom-check.checked { background: var(--gold); border-color: var(--gold); color: #1a1608; font-weight: 700; }
+  .nom-body { flex: 1; min-width: 0; }
+  .nom-text { font-size: 13.8px; line-height: 1.35; }
+  .nom-text.checked { color: var(--text); }
+  .nom-episode { font-size: 11.5px; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .nom-meta { display: flex; align-items: center; gap: 7px; margin-top: 6px; flex-wrap: wrap; }
+  .nom-link {
+    font-size: 11.5px; color: var(--gold); cursor: pointer; white-space: nowrap;
+  }
+  .stream-badge {
+    font-size: 10.5px; color: var(--muted); background: var(--card-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px;
+  }
+
+  .pick-btn {
+    font-size: 13px; line-height: 1; padding: 4px 7px; border-radius: 999px;
+    background: var(--card-2); border: 1px solid var(--border); cursor: pointer;
+    opacity: .55; filter: grayscale(1); transition: opacity .15s ease, filter .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .pick-btn.active { opacity: 1; filter: none; }
+  .pick-btn.active.predicted { border-color: var(--gold); background: rgba(212,175,55,.12); }
+  .pick-btn.active.wanted { border-color: var(--pink); background: rgba(224,86,140,.12); }
+
+  /* toast */
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    background: var(--gold); color: #1a1608; font-weight: 700; font-size: 13px;
+    padding: 9px 18px; border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease; z-index: 100;
+    box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* detail modal */
+  #overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50;
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  #overlay.show { display: flex; }
+  #detail {
+    background: var(--bg); border: 1px solid var(--border); border-bottom: none;
+    border-radius: 18px 18px 0 0; width: 100%; max-width: 640px;
+    max-height: 88vh; overflow-y: auto; padding: 18px 16px 26px;
+  }
+  .detail-head { display: flex; align-items: flex-start; gap: 10px; }
+  .detail-head h2 { margin: 0; font-size: 19px; flex: 1; }
+  .detail-close {
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    width: 30px; height: 30px; border-radius: 50%; font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .detail-sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+  .stream-section { margin-top: 14px; }
+  .stream-section .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .provider-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .provider-chip {
+    font-size: 12px; background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 11px;
+  }
+  .stream-empty { font-size: 12.5px; color: var(--muted); }
+  .stream-link { display: inline-block; margin-top: 8px; font-size: 12.5px; color: var(--gold); }
+
+  .mark-all-btn {
+    width: 100%; margin-top: 16px; background: var(--gold); color: #1a1608;
+    border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+  }
+  .mark-all-btn.done { background: var(--green); color: #08210c; }
+
+  .detail-noms { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .detail-nom-row {
+    display: flex; align-items: flex-start; gap: 10px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  }
+  .detail-nom-row .txt { flex: 1; font-size: 13px; }
+  .detail-nom-row .cat {
+    color: var(--gold); font-size: 13px; font-weight: 700;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 5px;
+  }
+
+  .empty-state { text-align: center; color: var(--muted); font-size: 13px; padding: 40px 20px; }
+
+  /* search highlighting */
+  mark.hl { background: rgba(212,175,55,.32); color: inherit; border-radius: 3px; padding: 0 1px; }
+
+  /* countdown */
+  .overall .countdown { color: var(--gold); font-size: 11.5px; font-weight: 600; margin-top: 4px; }
+
+  /* filter pills (Focus Mode / Hide completed) */
+  .filter-row { display: flex; gap: 6px; margin-top: 10px; }
+  .filter-pill {
+    padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; cursor: pointer; user-select: none;
+  }
+  .filter-pill.active { background: rgba(212,175,55,.15); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+  .hidden-note { color: var(--muted); font-size: 11.5px; text-align: center; padding: 9px 14px; }
+
+  /* posters */
+  .poster-thumb { border-radius: 6px; object-fit: cover; background: var(--card-2); display: block; flex-shrink: 0; }
+  .poster-thumb.sm { width: 34px; height: 49px; }
+  .poster-thumb.lg { width: 72px; height: 104px; border-radius: 8px; }
+  .poster-thumb.xl { width: 60px; height: 87px; border-radius: 8px; }
+  .poster-placeholder { display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--muted); border: 1px solid var(--border); }
+
+  /* Up Next */
+  .upnext-section { margin-top: 14px; }
+  .upnext-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .upnext-title { font-size: 14px; font-weight: 700; }
+  .upnext-manage { font-size: 11.5px; color: var(--gold); cursor: pointer; white-space: nowrap; }
+  .upnext-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .upnext-scroll::-webkit-scrollbar { display: none; }
+  .upnext-card { flex-shrink: 0; width: 84px; cursor: pointer; }
+  .upnext-card-title {
+    font-size: 11.5px; font-weight: 600; margin-top: 5px; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .upnext-card-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .upnext-onservice { color: var(--green); }
+  .upnext-empty { color: var(--muted); font-size: 12.5px; padding: 10px 2px; }
+
+  /* streaming services modal */
+  .service-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .service-chip {
+    padding: 8px 14px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--border);
+    font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .service-chip.active { background: rgba(212,175,55,.15); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+
+  /* completion celebration */
+  #confettiLayer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+  .confetti-piece {
+    position: absolute; top: -20px; width: 8px; height: 8px; border-radius: 2px;
+    animation-name: confettiFall; animation-timing-function: ease-in; animation-fill-mode: forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(540deg); opacity: 0; }
+  }
+  .cat-card.celebrate { animation: cardFlash .9s ease; }
+  @keyframes cardFlash {
+    0% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+    30% { box-shadow: 0 0 0 4px rgba(212,175,55,.55); }
+    100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="title-row">
+      <div style="font-size:26px;">🏆</div>
+      <div>
+        <h1>Emmy Tracker 2026</h1>
+        <div class="sub">Series, performance, directing &amp; writing nominees</div>
+      </div>
+    </div>
+
+    <div class="overall">
+      <svg class="ring" id="overallRing" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="track" cx="26" cy="26" r="22" stroke-width="5"></circle>
+        <circle class="prog" cx="26" cy="26" r="22" stroke-width="5"
+          stroke-dasharray="138.2" stroke-dashoffset="138.2"
+          transform="rotate(-90 26 26)"></circle>
+      </svg>
+      <div class="stats">
+        <div class="big" id="overallCount">0 / 0</div>
+        <div class="lbl">nominations watched</div>
+        <div class="countdown" id="countdown"></div>
+        <div class="picks-summary" id="picksSummary">🔮 0 predicted · ❤️ 0 picked</div>
+        <div class="saved" id="savedAt">Not saved yet</div>
+      </div>
+    </div>
+
+    <div class="upnext-section" id="upnextSection">
+      <div class="upnext-head">
+        <span class="upnext-title">🎯 Up Next</span>
+        <span class="upnext-manage" id="manageServicesBtn">Streaming services &rsaquo;</span>
+      </div>
+      <div class="upnext-scroll" id="upnextScroll"></div>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search shows, people, categories…" />
+      <span class="search-clear" id="searchClear">✕</span>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-pill" id="focusModeToggle">🎯 Focus Mode</span>
+      <span class="filter-pill" id="hideCompletedToggle">✓ Hide completed</span>
+      <span class="filter-pill" id="collapseAllBtn">⌃ Collapse all</span>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+  </header>
+
+  <div class="cat-list" id="catList"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">No matches.</div>
+</div>
+
+<div id="overlay">
+  <div id="detail"></div>
+</div>
+
+<div id="toast">✓ Saved</div>
+
+<div id="confettiLayer"></div>
+
+<script>
+const CATEGORIES = [{"id": "outstanding_drama_series", "label": "Drama Series", "icon": "🎭", "group": "Series/Program", "type": "Drama", "nominees": [{"display": "The Diplomat", "episode": null}, {"display": "The Gilded Age", "episode": null}, {"display": "A Knight Of The Seven Kingdoms", "episode": null}, {"display": "Paradise", "episode": null}, {"display": "The Pitt", "episode": null}, {"display": "Pluribus", "episode": null}, {"display": "Slow Horses", "episode": null}, {"display": "Your Friends & Neighbors", "episode": null}]}, {"id": "outstanding_lead_actor_in_a_drama_series", "label": "Lead Actor In A Drama Series", "icon": "🌟", "group": "Performance", "type": "Drama", "nominees": [{"display": "Sterling K. Brown — Paradise", "episode": null}, {"display": "Gary Oldman — Slow Horses", "episode": null}, {"display": "Mark Ruffalo — Task", "episode": null}, {"display": "Rufus Sewell — The Diplomat", "episode": null}, {"display": "Noah Wyle — The Pitt", "episode": null}]}, {"id": "outstanding_lead_actress_in_a_drama_series", "label": "Lead Actress In A Drama Series", "icon": "🌟", "group": "Performance", "type": "Drama", "nominees": [{"display": "Carrie Coon — The Gilded Age", "episode": null}, {"display": "Chase Infiniti — The Testaments", "episode": null}, {"display": "Keri Russell — The Diplomat", "episode": null}, {"display": "Rhea Seehorn — Pluribus", "episode": null}, {"display": "Zendaya — Euphoria", "episode": null}]}, {"id": "outstanding_supporting_actor_in_a_drama_series", "label": "Supporting Actor In A Drama Series", "icon": "🎭", "group": "Performance", "type": "Drama", "nominees": [{"display": "Patrick Ball — The Pitt", "episode": null}, {"display": "Billy Crudup — The Morning Show", "episode": null}, {"display": "Shawn Hatosy — The Pitt", "episode": null}, {"display": "Gerran Howell — The Pitt", "episode": null}, {"display": "Jack Lowden — Slow Horses", "episode": null}, {"display": "Tom Pelphrey — Task", "episode": null}, {"display": "Carlos-Manuel Vesga — Pluribus", "episode": null}]}, {"id": "outstanding_supporting_actress_in_a_drama_series", "label": "Supporting Actress In A Drama Series", "icon": "🎭", "group": "Performance", "type": "Drama", "nominees": [{"display": "Taylor Dearden — The Pitt", "episode": null}, {"display": "Fiona Dourif — The Pitt", "episode": null}, {"display": "Allison Janney — The Diplomat", "episode": null}, {"display": "Katherine LaNasa — The Pitt", "episode": null}, {"display": "Sepideh Moafi — The Pitt", "episode": null}, {"display": "Julianne Nicholson — Paradise", "episode": null}, {"display": "Karolina Wydra — Pluribus", "episode": null}]}, {"id": "outstanding_guest_actor_in_a_drama_series", "label": "Guest Actor In A Drama Series", "icon": "🎭", "group": "Performance", "type": "Drama", "nominees": [{"display": "Colman Domingo — Euphoria", "episode": "In God We Trust"}, {"display": "Ernest Harden Jr. — The Pitt", "episode": "7:00 A.M."}, {"display": "Jeff Hiller — Pluribus", "episode": "Please, Carol"}, {"display": "Jeff Kober — The Pitt", "episode": "8:00 P.M."}, {"display": "Jonathan Pryce — Slow Horses", "episode": "Scars"}, {"display": "Bradley Whitford — The Diplomat", "episode": "Amagansett"}]}, {"id": "outstanding_guest_actress_in_a_drama_series", "label": "Guest Actress In A Drama Series", "icon": "🎭", "group": "Performance", "type": "Drama", "nominees": [{"display": "Brittany Allen — The Pitt", "episode": "3:00 P.M."}, {"display": "Tal Anderson — The Pitt", "episode": "5:00 P.M."}, {"display": "Tina Ivlev — The Pitt", "episode": "1:00 P.M."}, {"display": "Miriam Shor — Pluribus", "episode": "We Is Us"}, {"display": "Merritt Wever — The Gilded Age", "episode": "Marriage Is A Gamble"}, {"display": "Shailene Woodley — Paradise", "episode": "Graceland"}]}, {"id": "outstanding_writing_for_a_drama_series", "label": "Writing For A Drama Series", "icon": "✍️", "group": "Writing", "type": "Drama", "nominees": [{"display": "Peter Ackerman & Debora Cahn — The Diplomat", "episode": "Amagansett"}, {"display": "Kirsten Pierre-Geyfman & R. Scott Gemmill — The Pitt", "episode": "1:00 P.M."}, {"display": "Valerie Chu — The Pitt", "episode": "12:00 P.M."}, {"display": "Vince Gilligan — Pluribus", "episode": "We Is Us"}, {"display": "Will Smith — Slow Horses", "episode": "Scars"}, {"display": "Brad Ingelsby — Task", "episode": "A Still Small Voice"}]}, {"id": "outstanding_directing_for_a_drama_series", "label": "Directing For A Drama Series", "icon": "🎬", "group": "Directing", "type": "Drama", "nominees": [{"display": "Salli Richardson Whitfield — The Gilded Age", "episode": "My Mind Is Made Up"}, {"display": "Hanelle M. Culpepper — Paradise", "episode": "Exodus"}, {"display": "Noah Wyle — The Pitt", "episode": "12:00 P.M."}, {"display": "Vince Gilligan — Pluribus", "episode": "We Is Us"}, {"display": "Saul Metzstein — Slow Horses", "episode": "Scars"}, {"display": "Salli Richardson Whitfield — Task", "episode": "Out Beyond Ideas Of Wrongdoing And Rightdoing, There Is A River."}]}, {"id": "outstanding_comedy_series", "label": "Comedy Series", "icon": "😂", "group": "Series/Program", "type": "Comedy", "nominees": [{"display": "Abbott Elementary", "episode": null}, {"display": "The Bear", "episode": null}, {"display": "Hacks", "episode": null}, {"display": "Margo's Got Money Troubles", "episode": null}, {"display": "Nobody Wants This", "episode": null}, {"display": "Only Murders In The Building", "episode": null}, {"display": "Shrinking", "episode": null}, {"display": "Widow's Bay", "episode": null}]}, {"id": "outstanding_lead_actor_in_a_comedy_series", "label": "Lead Actor In A Comedy Series", "icon": "🌟", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Yahya Abdul-Mateen II — Wonder Man", "episode": null}, {"display": "Steve Carell — Rooster", "episode": null}, {"display": "Matthew Rhys — Widow's Bay", "episode": null}, {"display": "Jason Segel — Shrinking", "episode": null}, {"display": "Martin Short — Only Murders In The Building", "episode": null}]}, {"id": "outstanding_lead_actress_in_a_comedy_series", "label": "Lead Actress In A Comedy Series", "icon": "🌟", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Quinta Brunson — Abbott Elementary", "episode": null}, {"display": "Ayo Edebiri — The Bear", "episode": null}, {"display": "Elle Fanning — Margo's Got Money Troubles", "episode": null}, {"display": "Lisa Kudrow — The Comeback", "episode": null}, {"display": "Jean Smart — Hacks", "episode": null}]}, {"id": "outstanding_supporting_actor_in_a_comedy_series", "label": "Supporting Actor In A Comedy Series", "icon": "🎭", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Colman Domingo — The Four Seasons", "episode": null}, {"display": "Paul W. Downs — Hacks", "episode": null}, {"display": "Harrison Ford — Shrinking", "episode": null}, {"display": "Nick Offerman — Margo's Got Money Troubles", "episode": null}, {"display": "Stephen Root — Widow's Bay", "episode": null}, {"display": "Michael Urie — Shrinking", "episode": null}, {"display": "Tyler James Williams — Abbott Elementary", "episode": null}]}, {"id": "outstanding_supporting_actress_in_a_comedy_series", "label": "Supporting Actress In A Comedy Series", "icon": "🎭", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Dale Dickey — Widow's Bay", "episode": null}, {"display": "Hannah Einbinder — Hacks", "episode": null}, {"display": "Janelle James — Abbott Elementary", "episode": null}, {"display": "Kate O'Flynn — Widow's Bay", "episode": null}, {"display": "Michelle Pfeiffer — Margo's Got Money Troubles", "episode": null}, {"display": "Megan Stalter — Hacks", "episode": null}, {"display": "Jessica Williams — Shrinking", "episode": null}]}, {"id": "outstanding_guest_actor_in_a_comedy_series", "label": "Guest Actor In A Comedy Series", "icon": "🎭", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Michael J. Fox — Shrinking", "episode": "The Field"}, {"display": "Brett Goldstein — Shrinking", "episode": "Happiness Mission"}, {"display": "Hamish Linklater — Widow's Bay", "episode": "Seasickness"}, {"display": "Christopher McDonald — Hacks", "episode": "No New Tricks"}, {"display": "Rob Reiner — The Bear", "episode": "Tonnato"}, {"display": "Connor Storrie — Saturday Night Live", "episode": "Host: Connor Storrie"}]}, {"id": "outstanding_guest_actress_in_a_comedy_series", "label": "Guest Actress In A Comedy Series", "icon": "🎭", "group": "Performance", "type": "Comedy", "nominees": [{"display": "Leslie Bibb — Hacks", "episode": "Montecito"}, {"display": "Jamie Lee Curtis — The Bear", "episode": "Tonnato"}, {"display": "Betty Gilpin — Widow's Bay", "episode": "Our History"}, {"display": "Cherry Jones — Hacks", "episode": "Montecito"}, {"display": "Laurie Metcalf — Hacks", "episode": "The Garden"}, {"display": "Kaitlin Olson — Hacks", "episode": "D’Amazing Race"}, {"display": "Lauren Weedman — Hacks", "episode": "The Cube"}]}, {"id": "outstanding_writing_for_a_comedy_series", "label": "Writing For A Comedy Series", "icon": "✍️", "group": "Writing", "type": "Comedy", "nominees": [{"display": "Quinta Brunson — Abbott Elementary", "episode": "Team Building"}, {"display": "Tim Robinson & Zach Kanin — The Chair Company", "episode": "Life Goes By Too F**king Fast, It Really Does."}, {"display": "Michael Patrick King & Lisa Kudrow — The Comeback", "episode": "Valerie Does It All"}, {"display": "Lucia Aniello + 2 more — Hacks", "episode": "Hacks (Finale)"}, {"display": "Picrow & Anthony King — Jury Duty Presents: Company Retreat", "episode": "Mergers And Acquisitions"}, {"display": "Katie Dippold — Widow's Bay", "episode": "Welcome To Widow's Bay!"}]}, {"id": "outstanding_directing_for_a_comedy_series", "label": "Directing For A Comedy Series", "icon": "🎬", "group": "Directing", "type": "Comedy", "nominees": [{"display": "Randall Einhorn — Abbott Elementary", "episode": "Ballgame"}, {"display": "Christopher Storer — The Bear", "episode": "Bears"}, {"display": "Andrew DeYoung — The Chair Company", "episode": "Life Goes By Too F**king Fast, It Really Does."}, {"display": "Lucia Aniello — Hacks", "episode": "Hacks (Finale)"}, {"display": "Mary Lou Belli — The Ms. Pat Show", "episode": "Give It Arrest"}, {"display": "Hiro Murai — Widow's Bay", "episode": "Welcome To Widow's Bay!"}]}, {"id": "outstanding_limited_or_anthology_series", "label": "Limited Or Anthology Series", "icon": "📺", "group": "Series/Program", "type": "Limited/Anthology", "nominees": [{"display": "All Her Fault", "episode": null}, {"display": "The Beast In Me", "episode": null}, {"display": "Beef", "episode": null}, {"display": "DTF St. Louis", "episode": null}, {"display": "Love Story: John F. Kennedy Jr. & Carolyn Bessette", "episode": null}]}, {"id": "outstanding_movie", "label": "Movie", "icon": "🎬", "group": "Series/Program", "type": "Limited/Anthology", "nominees": [{"display": "Heads Of State", "episode": null}, {"display": "Miss You, Love You", "episode": null}, {"display": "People We Meet On Vacation", "episode": null}, {"display": "Remarkably Bright Creatures", "episode": null}, {"display": "Tom Clancy's Jack Ryan: Ghost War", "episode": null}]}, {"id": "outstanding_lead_actor_in_a_limited_or_anthology_series_or_movie", "label": "Lead Actor In A Limited Or Anthology Series Or Movie", "icon": "🌟", "group": "Performance", "type": "Limited/Anthology", "nominees": [{"display": "Riz Ahmed — Bait", "episode": null}, {"display": "Jason Bateman — Black Rabbit", "episode": null}, {"display": "Charlie Hunnam — Monster: The Ed Gein Story", "episode": null}, {"display": "Oscar Isaac — Beef", "episode": null}, {"display": "Matthew Rhys — The Beast In Me", "episode": null}]}, {"id": "outstanding_lead_actress_in_a_limited_or_anthology_series_or_movie", "label": "Lead Actress In A Limited Or Anthology Series Or Movie", "icon": "🌟", "group": "Performance", "type": "Limited/Anthology", "nominees": [{"display": "Claire Danes — The Beast In Me", "episode": null}, {"display": "Sally Field — Remarkably Bright Creatures", "episode": null}, {"display": "Carey Mulligan — Beef", "episode": null}, {"display": "Sarah Pidgeon — Love Story: John F. Kennedy Jr. & Carolyn Bessette", "episode": null}, {"display": "Sarah Snook — All Her Fault", "episode": null}]}, {"id": "outstanding_supporting_actor_in_a_limited_or_anthology_series_or_movie", "label": "Supporting Actor In A Limited Or Anthology Series Or Movie", "icon": "🎭", "group": "Performance", "type": "Limited/Anthology", "nominees": [{"display": "Jason Bateman — DTF St. Louis", "episode": null}, {"display": "Richard Gadd — Half Man", "episode": null}, {"display": "David Harbour — DTF St. Louis", "episode": null}, {"display": "Richard Jenkins — DTF St. Louis", "episode": null}, {"display": "Charles Melton — Beef", "episode": null}, {"display": "Nick Offerman — Death By Lightning", "episode": null}]}, {"id": "outstanding_supporting_actress_in_a_limited_or_anthology_series_or_movie", "label": "Supporting Actress In A Limited Or Anthology Series Or Movie", "icon": "🎭", "group": "Performance", "type": "Limited/Anthology", "nominees": [{"display": "Linda Cardellini — DTF St. Louis", "episode": null}, {"display": "Dakota Fanning — All Her Fault", "episode": null}, {"display": "Laurie Metcalf — Monster: The Ed Gein Story", "episode": null}, {"display": "Joy Sunday — DTF St. Louis", "episode": null}, {"display": "Youn Yuh-jung — Beef", "episode": null}, {"display": "Constance Zimmer — Love Story: John F. Kennedy Jr. & Carolyn Bessette", "episode": null}]}, {"id": "outstanding_writing_for_a_limited_or_anthology_series_or_movie", "label": "Writing For A Limited Or Anthology Series Or Movie", "icon": "✍️", "group": "Writing", "type": "Limited/Anthology", "nominees": [{"display": "Megan Gallagher — All Her Fault", "episode": "Episode 8"}, {"display": "Gabe Rotter & Daniel Pearle — The Beast In Me", "episode": "Sick Puppy"}, {"display": "Lee Sung Jin — Beef", "episode": "All The Things We're Never Going To Have"}, {"display": "Mike Makowsky — Death By Lightning", "episode": null}, {"display": "Steven Conrad — DTF St. Louis", "episode": null}]}, {"id": "outstanding_directing_for_a_limited_or_anthology_series_or_movie", "label": "Directing For A Limited Or Anthology Series Or Movie", "icon": "🎬", "group": "Directing", "type": "Limited/Anthology", "nominees": [{"display": "Jake Schreier — Beef", "episode": "It Will Stay This Way And You Will Obey"}, {"display": "Lee Sung Jin — Beef", "episode": "Oh, The Comfort, The Inexpressible Comfort"}, {"display": "Jason Bateman — Black Rabbit", "episode": "The Black Rabbits"}, {"display": "Steven Conrad — DTF St. Louis", "episode": null}]}, {"id": "outstanding_variety_series", "label": "Variety Series", "icon": "🎪", "group": "Series/Program", "type": "Variety", "nominees": [{"display": "The Daily Show", "episode": null}, {"display": "Jimmy Kimmel Live!", "episode": null}, {"display": "Last Week Tonight With John Oliver", "episode": null}, {"display": "The Late Show With Stephen Colbert", "episode": null}, {"display": "Saturday Night Live", "episode": null}]}, {"id": "outstanding_variety_special_pre_recorded", "label": "Variety Special (Pre-Recorded)", "icon": "✨", "group": "Series/Program", "type": "Variety", "nominees": [{"display": "Dave Chappelle: The Unstoppable…", "episode": null}, {"display": "The Muppet Show", "episode": null}, {"display": "Nikki Glaser: Good Girl", "episode": null}, {"display": "Taylor Swift | The Eras Tour | The Final Show", "episode": null}, {"display": "Wicked: One Wonderful Night", "episode": null}]}, {"id": "outstanding_writing_for_a_variety_series", "label": "Writing For A Variety Series", "icon": "✍️", "group": "Writing", "type": "Variety", "nominees": [{"display": "Molly McNearney + 19 more — Jimmy Kimmel Live!", "episode": null}, {"display": "Daniel O'Brien + 13 more — Last Week Tonight With John Oliver", "episode": null}, {"display": "Ariel Dumas + 23 more — The Late Show With Stephen Colbert", "episode": null}]}, {"id": "outstanding_writing_for_a_variety_special", "label": "Writing For A Variety Special", "icon": "✍️", "group": "Writing", "type": "Variety", "nominees": [{"display": "Chris Fleming — Chris Fleming: Live At The Palace", "episode": null}, {"display": "Albertina Rizzo + 4 more — The Muppet Show", "episode": null}, {"display": "Nikki Glaser — Nikki Glaser: Good Girl", "episode": null}, {"display": "Amberia Allen + 18 more — The Oscars", "episode": null}, {"display": "Wanda Sykes — Wanda Sykes: Legacy", "episode": null}]}, {"id": "outstanding_directing_for_a_variety_series", "label": "Directing For A Variety Series", "icon": "🎬", "group": "Directing", "type": "Variety", "nominees": [{"display": "Andy Fisher — Jimmy Kimmel Live!", "episode": "Guests: Robert De Niro as The New FCC Chair, Glen Powell, and Musical Guest Sarah McLachlan"}, {"display": "Yvonne De Mare — The Late Show With Stephen Colbert", "episode": "The Late Show with Stephen Colbert Series Finale"}, {"display": "Liz Patrick — Saturday Night Live", "episode": "Host: Olivia Rodrigo"}]}, {"id": "outstanding_directing_for_a_variety_special", "label": "Directing For A Variety Special", "icon": "🎬", "group": "Directing", "type": "Variety", "nominees": [{"display": "Hamish Hamilton — The Apple Music Super Bowl LX Halftime Show Starring Bad Bunny", "episode": null}, {"display": "Rikki Hughes — Dave Chappelle: The Unstoppable…", "episode": null}, {"display": "Glenn Weiss — Taylor Swift | The Eras Tour | The Final Show", "episode": null}, {"display": "Glenn Weiss — 78th Annual Tony Awards", "episode": null}, {"display": "Julie Dash — Wanda Sykes: Legacy", "episode": null}]}, {"id": "outstanding_reality_competition_program", "label": "Reality Competition Program", "icon": "🏆", "group": "Series/Program", "type": "Reality/Game Show", "nominees": [{"display": "Dancing With The Stars", "episode": null}, {"display": "RuPaul's Drag Race", "episode": null}, {"display": "Survivor", "episode": null}, {"display": "Top Chef", "episode": null}, {"display": "The Traitors", "episode": null}]}, {"id": "outstanding_structured_reality_program", "label": "Structured Reality Program", "icon": "🏆", "group": "Series/Program", "type": "Reality/Game Show", "nominees": [{"display": "Antiques Roadshow", "episode": null}, {"display": "Diners, Drive-ins And Dives", "episode": null}, {"display": "Love Is Blind", "episode": null}, {"display": "Queer Eye", "episode": null}, {"display": "Shark Tank", "episode": null}]}, {"id": "outstanding_unstructured_reality_program", "label": "Unstructured Reality Program", "icon": "🏆", "group": "Series/Program", "type": "Reality/Game Show", "nominees": [{"display": "America's Sweethearts: Dallas Cowboys Cheerleaders", "episode": null}, {"display": "Love On The Spectrum", "episode": null}, {"display": "RuPaul's Drag Race: Untucked", "episode": null}, {"display": "Summer House", "episode": null}, {"display": "Welcome To Wrexham", "episode": null}]}, {"id": "outstanding_game_show", "label": "Game Show", "icon": "🎮", "group": "Series/Program", "type": "Reality/Game Show", "nominees": [{"display": "Celebrity Family Feud", "episode": null}, {"display": "Jeopardy!", "episode": null}, {"display": "The Price Is Right", "episode": null}, {"display": "Wheel Of Fortune", "episode": null}, {"display": "Who Wants To Be A Millionaire", "episode": null}]}, {"id": "outstanding_host_for_a_reality_or_reality_competition_program", "label": "Host For A Reality Or Reality Competition Program", "icon": "🎙️", "group": "Performance", "type": "Reality/Game Show", "nominees": [{"display": "RuPaul Charles — RuPaul's Drag Race", "episode": null}, {"display": "Alan Cumming — The Traitors", "episode": null}, {"display": "Kristen Kish — Top Chef", "episode": null}, {"display": "Ariana Madix — Love Island USA", "episode": null}, {"display": "Jeff Probst — Survivor", "episode": null}]}, {"id": "outstanding_host_for_a_game_show", "label": "Host For A Game Show", "icon": "🎙️", "group": "Performance", "type": "Reality/Game Show", "nominees": [{"display": "Steve Harvey — Celebrity Family Feud", "episode": null}, {"display": "Ken Jennings — Jeopardy!", "episode": null}, {"display": "Colin Jost — Pop Culture Jeopardy!", "episode": null}, {"display": "Jimmy Kimmel — Who Wants To Be A Millionaire", "episode": null}, {"display": "Martin Short — Match Game", "episode": null}]}, {"id": "outstanding_directing_for_a_reality_program", "label": "Directing For A Reality Program", "icon": "🎬", "group": "Directing", "type": "Reality/Game Show", "nominees": [{"display": "Bertram van Munster — The Amazing Race", "episode": "I'm Not A Big Fan Of Olives"}, {"display": "Cian O’Clery — Love On The Spectrum", "episode": "Episode 1"}, {"display": "Nick Murray — RuPaul's Drag Race", "episode": "Grand Finale"}, {"display": "Anna Moulaison — Top Chef", "episode": "Carolina Roots"}, {"display": "Ben Archard — The Traitors", "episode": "Let The Cards Fall As They Will"}]}, {"id": "outstanding_documentary_or_nonfiction_series", "label": "Documentary Or Nonfiction Series", "icon": "🎥", "group": "Series/Program", "type": "Documentary", "nominees": [{"display": "The American Revolution", "episode": null}, {"display": "Mr. Scorsese", "episode": null}, {"display": "Rafa", "episode": null}, {"display": "Sean Combs: The Reckoning", "episode": null}, {"display": "The Yogurt Shop Murders", "episode": null}]}, {"id": "outstanding_documentary_or_nonfiction_special", "label": "Documentary Or Nonfiction Special", "icon": "🎥", "group": "Series/Program", "type": "Documentary", "nominees": [{"display": "John Candy: I Like Me", "episode": null}, {"display": "Marty, Life Is Short", "episode": null}, {"display": "Mel Brooks: The 99 Year Old Man!", "episode": null}, {"display": "My Mom Jayne: A Film By Mariska Hargitay", "episode": null}, {"display": "Ocean With David Attenborough", "episode": null}]}, {"id": "outstanding_hosted_nonfiction_series_or_special", "label": "Hosted Nonfiction Series Or Special", "icon": "🎙️", "group": "Series/Program", "type": "Documentary", "nominees": [{"display": "The Daily Show Presents: Jordan Klepper Fingers The Pulse: Give The Man A Prize", "episode": null}, {"display": "Finding Your Roots With Henry Louis Gates, Jr.", "episode": null}, {"display": "My Next Guest Needs No Introduction With David Letterman", "episode": null}, {"display": "The Reluctant Traveler With Eugene Levy", "episode": null}, {"display": "Tucci In Italy", "episode": null}]}, {"id": "exceptional_merit_in_documentary_filmmaking", "label": "Exceptional Merit In Documentary Filmmaking", "icon": "🎥", "group": "Series/Program", "type": "Documentary", "nominees": [{"display": "The Librarians", "episode": null}, {"display": "The Tale Of Silyan", "episode": null}]}, {"id": "outstanding_narrator", "label": "Narrator", "icon": "🎭", "group": "Performance", "type": "Documentary", "nominees": [{"display": "David Attenborough — A Gorilla Story: Told By David Attenborough", "episode": null}, {"display": "David Attenborough — Ocean With David Attenborough", "episode": null}, {"display": "Jodie Foster — Breakdown: 1975", "episode": null}, {"display": "Werner Herzog — Ghost Elephants", "episode": null}, {"display": "Octavia Spencer — Lost Women Of Alaska", "episode": "The Missing"}]}, {"id": "outstanding_writing_for_a_nonfiction_program", "label": "Writing For A Nonfiction Program", "icon": "✍️", "group": "Writing", "type": "Documentary", "nominees": [{"display": "Geoffrey C. Ward — The American Revolution", "episode": "Episode One: In Order To Be Free (May 1754 – May 1775)"}, {"display": "Jennifer Flanz + 5 more — The Daily Show Presents: Jordan Klepper Fingers The Pulse: Give The Man A Prize", "episode": null}, {"display": "David Reilly & Christine Rose — The Reluctant Traveler With Eugene Levy", "episode": "Living The Royal Life In The UK"}]}, {"id": "outstanding_directing_for_a_documentary_nonfiction_program", "label": "Directing For A Documentary/Nonfiction Program", "icon": "🎬", "group": "Directing", "type": "Documentary", "nominees": [{"display": "Lawrence Kasdan — Marty, Life Is Short", "episode": null}, {"display": "Judd Apatow & Michael Bonfiglio — Mel Brooks: The 99 Year Old Man!", "episode": null}, {"display": "Rebecca Miller — Mr. Scorsese", "episode": "All This Filming Isn't Healthy"}, {"display": "Mariska Hargitay — My Mom Jayne: A Film By Mariska Hargitay", "episode": null}, {"display": "Alexandria Stapleton — Sean Combs: The Reckoning", "episode": "Pain Vs Love"}]}, {"id": "outstanding_production_design_for_a_narrative_contemporary_program_one_hour_or_more", "label": "Production Design For A Narrative Contemporary Program (One Hour Or More)", "icon": "🎨", "group": "Craft", "type": "Craft", "nominees": [{"display": "François Audouy + 2 more — Euphoria", "episode": "This Little Piggy"}, {"display": "Nina Ruscio + 2 more — The Pitt", "episode": "9:00 P.M."}, {"display": "Denise Pizzini + 2 more — Pluribus", "episode": "Grenade"}, {"display": "Choi Ho Man + 2 more — Slow Horses", "episode": "Incommunicado"}, {"display": "Mark Scruton + 2 more — Wednesday", "episode": "If These Woes Could Talk"}]}, {"id": "outstanding_production_design_for_a_narrative_period_or_fantasy_program_one_hour_or_more", "label": "Production Design For A Narrative Period Or Fantasy Program (One Hour Or More)", "icon": "🎨", "group": "Craft", "type": "Craft", "nominees": [{"display": "Howard Cummings + 2 more — Fallout", "episode": "The Wrangler"}, {"display": "Bob Shaw + 2 more — The Gilded Age", "episode": "If You Want To Cook An Omelette"}, {"display": "Jon Carlos + 4 more — Palm Royale", "episode": "Maxine Does Something Good"}, {"display": "Warren Alan Young + 2 more — Spider-Noir", "episode": "Step Into My Office"}, {"display": "Chris Trujillo + 2 more — Stranger Things", "episode": "Chapter Four: Sorcerer"}]}, {"id": "outstanding_production_design_for_a_narrative_program_half_hour", "label": "Production Design For A Narrative Program (Half-Hour)", "icon": "🎨", "group": "Craft", "type": "Craft", "nominees": [{"display": "Rob Tokarz + 2 more — Hacks", "episode": "Who’s Making Dinner?"}, {"display": "Tom McCullagh + 2 more — A Knight Of The Seven Kingdoms", "episode": "Seven"}, {"display": "Francoise Cherry-Cohen + 2 more — Leanne", "episode": "Please Be A Lizard"}, {"display": "Patrick Howe + 2 more — Only Murders In The Building", "episode": "The House Always…"}, {"display": "Steve Arnold + 2 more — Widow's Bay", "episode": "Lodging"}]}, {"id": "outstanding_production_design_for_a_variety_or_reality_series", "label": "Production Design For A Variety Or Reality Series", "icon": "🎨", "group": "Craft", "type": "Craft", "nominees": [{"display": "David Ellis + 2 more — Jimmy Kimmel Live!", "episode": "Guests: Stephen Colbert, Seth Meyers, Kumail Nanjiani, Josh Meyers, and Musical Guest Reneé Rapp"}, {"display": "Jim Fenhagen + 3 more — The Late Show With Stephen Colbert", "episode": "Guests: John Krasinski, and Special Appearances"}, {"display": "Jen Chu + 2 more — RuPaul's Drag Race", "episode": "RDR Live Returns!"}, {"display": "Keith Ian Raywood + 5 more — Saturday Night Live", "episode": "Host: Jack Black"}, {"display": "Stuart Frossell + 5 more — The Traitors", "episode": "The Black Banquet"}]}, {"id": "outstanding_choreography_for_scripted_programming", "label": "Choreography For Scripted Programming", "icon": "💃", "group": "Craft", "type": "Craft", "nominees": [{"display": "Sean \"Jack\" Murphy — Bridgerton", "episode": "Pink / Full Circle / Recital / Masquerade / Stag"}, {"display": "Christian John-Devi Vincent — Noah's Arc: The Movie", "episode": "Love Is A Contact Sport / Next Caller"}, {"display": "Brooke Lipton — Palm Royale", "episode": "Comin' Home Baby / I Want To Be A Cowboy's Sweetheart / I Had A Ball"}, {"display": "Dahlston Delgado — Stumble", "episode": "Media Day Routine / Bring It On Routine / Truck Routine / Elite Cheer Routine / Car Wash Routine / SDSJC Daytona Routine / Buttons Daytona Routine"}, {"display": "Corey Baker — Wednesday", "episode": "The Dead Dance"}, {"display": "Lance Guillermo & Danielle Sten — Will Trent", "episode": "NuevaYol"}]}, {"id": "outstanding_cinematography_for_a_series_half_hour", "label": "Cinematography For A Series (Half-Hour)", "icon": "🎥", "group": "Craft", "type": "Craft", "nominees": [{"display": "Andrew Wehde — The Bear", "episode": "Scallop"}, {"display": "Adam Bricker — Hacks", "episode": "The Garden"}, {"display": "Gustav Danielsson — A Knight Of The Seven Kingdoms", "episode": "In The Name Of The Mother"}, {"display": "Chuck Ozeas — The Upshaws", "episode": "Indy Streets"}, {"display": "Christian Sprenger — Widow's Bay", "episode": "Our History"}]}, {"id": "outstanding_cinematography_for_a_series_one_hour", "label": "Cinematography For A Series (One Hour)", "icon": "🎥", "group": "Craft", "type": "Craft", "nominees": [{"display": "Dana Gonzales — Alien: Earth", "episode": "Neverland"}, {"display": "Marcell Rév — Euphoria", "episode": "In God We Trust"}, {"display": "Tari Segal — Margo's Got Money Troubles", "episode": "Flamingos"}, {"display": "Marshall Adams — Pluribus", "episode": "We Is Us"}, {"display": "Darran Tiernan — Spider-Noir", "episode": "Step Into My Office"}, {"display": "Alex Disenhof — Task", "episode": "Crossings"}]}, {"id": "outstanding_cinematography_for_a_nonfiction_program", "label": "Cinematography For A Nonfiction Program", "icon": "🎥", "group": "Craft", "type": "Craft", "nominees": [{"display": "Tony Hardmon — My Mom Jayne: A Film By Mariska Hargitay", "episode": null}, {"display": "Doug Anderson & Toby Strong — Ocean With David Attenborough", "episode": null}, {"display": "Jean Dakar — The Tale Of Silyan", "episode": null}, {"display": "Matt Ball — Tucci In Italy", "episode": "Le Marche"}, {"display": "Justin Zweifach & Christoper LaMarca — The Yogurt Shop Murders", "episode": "The End Of Wondering"}]}, {"id": "outstanding_cinematography_for_a_reality_program", "label": "Cinematography For A Reality Program", "icon": "🎥", "group": "Craft", "type": "Craft", "nominees": [{"display": "Joshua Gitersonke + 20 more — The Amazing Race", "episode": "Series Body Of Work"}, {"display": "Geoff Thomas & Cian O’Clery — Love On The Spectrum", "episode": "Episode 4"}, {"display": "Scott Duncan + 42 more — Survivor", "episode": "Series Body Of Work"}, {"display": "Siggi Rosen-Rawlings + 16 more — The Traitors", "episode": "Series Body Of Work"}, {"display": "Leighton Cox + 4 more — Welcome To Wrexham", "episode": "Do A Wrexham"}]}, {"id": "outstanding_commercial", "label": "Commercial", "icon": "📺", "group": "Craft", "type": "Craft", "nominees": [{"display": "TBWA\\Chiat\\Day LA & Somesuch Los Angeles — Backstory - Levi's", "episode": null}, {"display": "Lola USA & Smuggler — Backyard Legends - adidas World Cup", "episode": null}, {"display": "TBWA\\Media Arts Lab & Smuggler — A Critter Carol - Apple", "episode": null}, {"display": "Apple & Somesuch — I'm Not Remarkable - Apple", "episode": null}, {"display": "Wieden + Kennedy & Iconoclast — Why Do It - Nike", "episode": null}, {"display": "Isle of Any & MJZ — Your Way Out - Coinbase", "episode": null}]}, {"id": "outstanding_period_costumes", "label": "Period Costumes", "icon": "👗", "group": "Craft", "type": "Craft", "nominees": [{"display": "John Walter Glaser III + 5 more — Bridgerton", "episode": "Dance In The Country"}, {"display": "Kasia Walicka Maimone + 5 more — The Gilded Age", "episode": "Marriage Is A Gamble"}, {"display": "Rudy Mance + 4 more — Love Story: John F. Kennedy Jr. & Carolyn Bessette", "episode": "The Wedding"}, {"display": "Joshua J. Marsh + 4 more — Monster: The Ed Gein Story", "episode": "Mother!"}, {"display": "Alix Friedberg + 5 more — Palm Royale", "episode": "Maxine Is Ready To Single Mingle"}]}, {"id": "outstanding_fantasy_sci_fi_costumes", "label": "Fantasy/Sci-Fi Costumes", "icon": "👗", "group": "Craft", "type": "Craft", "nominees": [{"display": "Suttirat Larlarb + 3 more — Alien: Earth", "episode": "Neverland"}, {"display": "Michael Ground + 5 more — The Boys", "episode": "The Frenchman, The Female, And The Man Called Mother's Milk"}, {"display": "Dayna Pink + 4 more — Fallout", "episode": "The Strip"}, {"display": "Lorna Ó Ríordáin + 4 more — A Knight Of The Seven Kingdoms", "episode": "Seven"}]}, {"id": "outstanding_contemporary_costumes_for_a_series", "label": "Contemporary Costumes For A Series", "icon": "👗", "group": "Craft", "type": "Craft", "nominees": [{"display": "Marylin Fitoussi + 3 more — Emily In Paris", "episode": "Veni, Vidi, Venezia"}, {"display": "Kathleen Felix-Hager + 4 more — Hacks", "episode": "No New Tricks"}, {"display": "Mirren Gordon-Crozier + 4 more — Margo's Got Money Troubles", "episode": "Grudge Match"}, {"display": "Dana Covarrubias + 3 more — Only Murders In The Building", "episode": "After You"}, {"display": "Colleen Atwood + 5 more — Wednesday", "episode": "Woe Me The Money"}]}, {"id": "outstanding_period_or_fantasy_sci_fi_hairstyling", "label": "Period Or Fantasy/Sci-Fi Hairstyling", "icon": "💇", "group": "Craft", "type": "Craft", "nominees": [{"display": "Nic Collins + 5 more — Bridgerton", "episode": "The Waltz"}, {"display": "Dennis Bailey + 5 more — Fallout", "episode": "The Strip"}, {"display": "Sean Flanigan + 5 more — The Gilded Age", "episode": "My Mind Is Made Up"}, {"display": "Pippa Woods + 5 more — A Knight Of The Seven Kingdoms", "episode": "The Morrow"}, {"display": "Karen Bartek + 5 more — Palm Royale", "episode": "Maxine Drinks Martinis Now"}]}, {"id": "outstanding_title_design", "label": "Title Design", "icon": "🔤", "group": "Craft", "type": "Craft", "nominees": [{"display": "Ultra + 8 more — IT: Welcome To Derry", "episode": null}, {"display": "Hazel Baird + 7 more — Murderbot", "episode": null}, {"display": "Ronnie Koff + 7 more — PONIES", "episode": null}, {"display": "Mason Nicoll + 5 more — Smoke", "episode": null}, {"display": "Mason Nicoll + 7 more — Spider-Noir", "episode": null}, {"display": "Ronnie Koff + 7 more — Young Sherlock", "episode": null}]}, {"id": "outstanding_contemporary_makeup_non_prosthetic", "label": "Contemporary Makeup (Non-Prosthetic)", "icon": "💄", "group": "Craft", "type": "Craft", "nominees": [{"display": "Kate Biscoe + 5 more — All's Fair", "episode": "Oh, Jesus!"}, {"display": "ADD + 4 more — Euphoria", "episode": "Kitty Likes To Dance"}, {"display": "Brittany White + 3 more — Hacks", "episode": "Hacks (Finale)"}, {"display": "Erin Ayanian Monroe + 4 more — Margo's Got Money Troubles", "episode": "Grudge Match"}, {"display": "Merry Lee Traum + 2 more — The Pitt", "episode": "1:00 P.M."}, {"display": "Lynn Johnston + 3 more — Wednesday", "episode": "Woe Me The Money"}]}, {"id": "outstanding_period_or_fantasy_sci_fi_makeup_non_prosthetic", "label": "Period Or Fantasy/Sci-Fi Makeup (Non-Prosthetic)", "icon": "💄", "group": "Craft", "type": "Craft", "nominees": [{"display": "Elisa Marsh + 7 more — Fallout", "episode": "The Strip"}, {"display": "Nicki Ledermann + 4 more — The Gilded Age", "episode": "My Mind Is Made Up"}, {"display": "Milagros Medina-Cerdeira + 3 more — Love Story: John F. Kennedy Jr. & Carolyn Bessette", "episode": "The Pools Party"}, {"display": "Heather Koontz — Monster: The Ed Gein Story", "episode": "The Babysitter"}, {"display": "Tricia Sawyer + 6 more — Palm Royale", "episode": "Maxine Drinks Martinis Now"}]}, {"id": "outstanding_prosthetic_makeup", "label": "Prosthetic Makeup", "icon": "💄", "group": "Craft", "type": "Craft", "nominees": [{"display": "Jake Garber + 7 more — Fallout", "episode": "The Demon In The Snow"}, {"display": "Leo Corey Castellano + 2 more — Monster: The Ed Gein Story", "episode": "The Godfather"}, {"display": "Myriam Arougheti + 5 more — The Pitt", "episode": "9:00 P.M."}, {"display": "Vincent Van Dyke + 7 more — Spider-Noir", "episode": "Betrayal"}, {"display": "Barrie Gower + 3 more — Stranger Things", "episode": "Chapter Four: Sorcerer"}]}, {"id": "outstanding_music_composition_for_a_series_original_dramatic_score", "label": "Music Composition For A Series (Original Dramatic Score)", "icon": "🎼", "group": "Craft", "type": "Craft", "nominees": [{"display": "Dan Romer — A Knight Of The Seven Kingdoms", "episode": "In The Name Of The Mother"}, {"display": "Jeff Toyne — Palm Royale", "episode": "Maxine Drinks Martinis Now"}, {"display": "Dave Porter — Pluribus", "episode": "We Is Us"}, {"display": "Daniel Pemberton & Toydrum — Slow Horses", "episode": "Missiles"}, {"display": "Kris Bowers & Michael Dean Parsons — Spider-Noir", "episode": "Step Into My Office"}, {"display": "David Fleming — Widow's Bay", "episode": "Our History"}]}, {"id": "outstanding_original_music_and_lyrics", "label": "Original Music And Lyrics", "icon": "🎼", "group": "Craft", "type": "Craft", "nominees": [{"display": "Christopher Lennertz & Daveed Diggs — The Boys", "episode": "The Frenchman, The Female, And The Man Called Mother's Milk / Song Title: Raise Him Up"}, {"display": "Carlos Rafael Rivera & David Stal — Hacks", "episode": "EGOT / Song Title: Mis Figuritas"}, {"display": "Gavin Brivik & Andrew Bird — The Pitt", "episode": "12:00 P.M. / Song Title: Need Someone"}, {"display": "Trey Parker — South Park", "episode": "The Crap Out / Song Title: Christian Woman"}, {"display": "Warren Oak Felder + 2 more — Spider-Noir", "episode": "A Mistake I'll Never Make Again / Song Title: The Devil You Know"}, {"display": "Lady Gaga + 2 more — Wednesday", "episode": "Woe Me The Money / Song Title: The Dead Dance"}]}, {"id": "outstanding_original_main_title_theme_music", "label": "Original Main Title Theme Music", "icon": "🎼", "group": "Craft", "type": "Craft", "nominees": [{"display": "Jeff Beal — All Her Fault", "episode": null}, {"display": "Sean Callery — The Beast In Me", "episode": null}, {"display": "Michael Abels — The 'Burbs", "episode": null}, {"display": "Amanda Jones — Murderbot", "episode": null}, {"display": "Dave Porter — Pluribus", "episode": null}]}, {"id": "outstanding_music_supervision", "label": "Music Supervision", "icon": "🎼", "group": "Craft", "type": "Craft", "nominees": [{"display": "Michelle Johnson & Yvette Metoyer — The Boys", "episode": "Blood And Bone"}, {"display": "Matt Biffa — Hacks", "episode": "Hacks (Finale)"}, {"display": "Manish Raval + 2 more — Nobody Wants This", "episode": "When Noah Met Joanne"}, {"display": "Thomas Golubić — Pluribus", "episode": "We Is Us"}, {"display": "Nora Felder — Stranger Things", "episode": "Chapter Eight: The Rightside Up"}, {"display": "Toko Nagata — Widow's Bay", "episode": "Beach Reads"}]}, {"id": "outstanding_special_visual_effects_in_a_season_or_a_movie", "label": "Special Visual Effects In A Season Or A Movie", "icon": "✨", "group": "Craft", "type": "Craft", "nominees": [{"display": "Jonathan Rothbart + 11 more — Alien: Earth", "episode": null}, {"display": "Chris MacLean + 11 more — Foundation", "episode": null}, {"display": "Ultra + 12 more — IT: Welcome To Derry", "episode": null}, {"display": "Sean Konrad + 11 more — Monarch: Legacy of Monsters", "episode": null}, {"display": "Russell Dodgson + 11 more — Prehistoric Planet: Ice Age", "episode": null}, {"display": "Betsy Paterson + 11 more — Stranger Things", "episode": null}]}, {"id": "outstanding_special_visual_effects_in_a_single_episode", "label": "Special Visual Effects In A Single Episode", "icon": "✨", "group": "Craft", "type": "Craft", "nominees": [{"display": "Karen Heston + 8 more — Gen V", "episode": "New Year, New U"}, {"display": "Arron Roebuck + 8 more — A Knight Of The Seven Kingdoms", "episode": "In The Name Of The Mother"}, {"display": "John Weckworth + 11 more — Paradise", "episode": "Exodus"}, {"display": "Hnedel Maximore + 11 more — Spider-Noir", "episode": "Nightmare On A Gurney"}, {"display": "Jao M’Changama + 11 more — The Walking Dead: Daryl Dixon", "episode": "Costa Da Morte"}]}, {"id": "outstanding_stunt_coordination_for_drama_programming", "label": "Stunt Coordination For Drama Programming", "icon": "🤸", "group": "Craft", "type": "Craft", "nominees": [{"display": "John Koyama — The Boys", "episode": null}, {"display": "Casey O'Neill & Josh Kemble — Fallout", "episode": null}, {"display": "Victor Paguia — FBI", "episode": null}, {"display": "David Rowden Sr. — The Rookie", "episode": null}, {"display": "Hiro Koda & Jahnel Curfman — Stranger Things", "episode": null}]}, {"id": "outstanding_stunt_coordination_for_comedy_programming", "label": "Stunt Coordination For Comedy Programming", "icon": "🤸", "group": "Craft", "type": "Craft", "nominees": [{"display": "Shauna Duggins & Chris O'Hara — Beef", "episode": null}, {"display": "Mallory Thompson — Palm Royale", "episode": null}, {"display": "Hank Amos & Dave Macomber — Peacemaker", "episode": null}, {"display": "Tom Place — Poker Face", "episode": null}, {"display": "Freddy Bouciegues & Hugh Aodh O'Brien — Spider-Noir", "episode": null}, {"display": "Freddie Poole — Tulsa King", "episode": null}]}, {"id": "outstanding_animated_program", "label": "Animated Program", "icon": "🎨", "group": "Series/Program", "type": "Other", "nominees": [{"display": "Bob's Burgers", "episode": "Grand Pre Pre Pre Opening"}, {"display": "Rick And Morty", "episode": "There's Something About Morty"}, {"display": "The Simpsons", "episode": "Homer? A Cracker Bro?"}, {"display": "Smiling Friends", "episode": "Le Voyage Incroyable De Monsieur Grenouille"}, {"display": "South Park", "episode": "Sermon On The 'Mount"}, {"display": "Star Wars: Visions", "episode": "Black"}]}, {"id": "outstanding_character_voice_over_performance", "label": "Character Voice-Over Performance", "icon": "🎭", "group": "Performance", "type": "Other", "nominees": [{"display": "Pamela Adlon — King Of The Hill", "episode": "Any Given Hill-day"}, {"display": "Julie Andrews — Bridgerton", "episode": "The Waltz"}, {"display": "Hank Azaria — The Simpsons", "episode": "Keep Chalm And Gary On"}, {"display": "Trey Parker — South Park", "episode": "Sermon On The 'Mount"}, {"display": "Matt Vogel — The Muppet Show", "episode": null}, {"display": "Steven Yeun — Invincible", "episode": "Don't Leave Me Hanging Here"}]}];
+
+const STORAGE_KEY = "emmyTracker2026:v2";
+
+/* ---------- state ---------- */
+// entries: { "catId#idx": true/false }             -> watched
+// picks:   { catId: { predicted: idx|null, wanted: idx|null } }  -> per-category, single choice each
+let state = { entries: {}, picks: {}, updatedAt: null };
+(function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") state = Object.assign(state, parsed);
+    }
+  } catch (e) { /* ignore corrupt storage */ }
+})();
+
+function saveState() {
+  state.updatedAt = new Date().toISOString();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  renderSavedAt();
+  showToast("✓ Saved");
+}
+
+function entryKey(catId, idx) { return catId + "#" + idx; }
+function isChecked(catId, idx) { return !!state.entries[entryKey(catId, idx)]; }
+function setChecked(catId, idx, val) { state.entries[entryKey(catId, idx)] = !!val; }
+
+function getPredicted(catId) { return state.picks[catId] ? state.picks[catId].predicted : null; }
+function getWanted(catId) { return state.picks[catId] ? state.picks[catId].wanted : null; }
+function setPredicted(catId, idx) {
+  if (!state.picks[catId]) state.picks[catId] = { predicted: null, wanted: null };
+  state.picks[catId].predicted = state.picks[catId].predicted === idx ? null : idx;
+  saveState();
+}
+function setWanted(catId, idx) {
+  if (!state.picks[catId]) state.picks[catId] = { predicted: null, wanted: null };
+  state.picks[catId].wanted = state.picks[catId].wanted === idx ? null : idx;
+  saveState();
+}
+
+/* ---------- extractFilm / cascade ---------- */
+function extractFilm(nomineeStr) {
+  if (!nomineeStr) return null;
+  // "Song" — Title
+  let m = nomineeStr.match(/^"[^"]+"\s*—\s*(.+)$/);
+  if (m) return m[1].trim();
+  // Person — Title  (only split on the LAST em dash so titles containing "—" survive)
+  const lastDash = nomineeStr.lastIndexOf("—");
+  if (lastDash !== -1) {
+    const left = nomineeStr.slice(0, lastDash).trim();
+    const right = nomineeStr.slice(lastDash + 1).trim();
+    if (left && right) return right;
+  }
+  // bare title
+  return nomineeStr.trim();
+}
+
+// showTitle -> [{catId, idx}]
+let SHOW_INDEX = {};
+function buildShowIndex() {
+  SHOW_INDEX = {};
+  CATEGORIES.forEach(cat => {
+    cat.nominees.forEach((n, idx) => {
+      const film = extractFilm(n.display);
+      if (!film) return;
+      if (!SHOW_INDEX[film]) SHOW_INDEX[film] = [];
+      SHOW_INDEX[film].push({ catId: cat.id, idx });
+    });
+  });
+}
+buildShowIndex();
+
+function cascadeFilm(title, checked) {
+  const refs = SHOW_INDEX[title] || [];
+  refs.forEach(r => setChecked(r.catId, r.idx, checked));
+  saveState();
+  renderAll();
+}
+
+/* ---------- streaming ---------- */
+const streamCache = {};
+const streamInFlight = {};
+function fetchStreaming(title) {
+  if (streamCache[title]) return Promise.resolve(streamCache[title]);
+  if (streamInFlight[title]) return streamInFlight[title];
+  const p = fetch("/.netlify/functions/streaming?title=" + encodeURIComponent(title))
+    .then(r => r.json())
+    .then(data => { streamCache[title] = data; delete streamInFlight[title]; return data; })
+    .catch(() => { const empty = { flatrate: [], rent: [], buy: [], link: null }; streamCache[title] = empty; delete streamInFlight[title]; return empty; });
+  streamInFlight[title] = p;
+  return p;
+}
+
+function prefetchCategory(cat) {
+  const titles = new Set(cat.nominees.map(n => extractFilm(n.display)).filter(Boolean));
+  titles.forEach(t => {
+    fetchStreaming(t).then(() => paintStreamData(cat.id, t));
+  });
+}
+
+function paintStreamData(catId, title) {
+  const data = streamCache[title];
+  if (!data) return;
+  document.querySelectorAll('.nom-row').forEach(row => {
+    if (row.dataset.cat === catId && row.dataset.film === title) {
+      const slot = row.querySelector('.stream-slot');
+      if (slot) slot.innerHTML = streamBadgeHtml(data);
+      const posterSlot = row.querySelector('.poster-slot');
+      if (posterSlot) posterSlot.innerHTML = posterHtmlFor(title, "sm");
+    }
+  });
+}
+
+function posterHtmlFor(title, sizeClass) {
+  const data = streamCache[title];
+  if (data && data.poster) {
+    return '<img class="poster-thumb ' + sizeClass + '" src="' + escapeHtml(data.poster) + '" alt="" loading="lazy">';
+  }
+  return '<div class="poster-thumb ' + sizeClass + ' poster-placeholder">🎬</div>';
+}
+
+function streamBadgeHtml(data) {
+  if (!data) return "";
+  if (data.flatrate && data.flatrate.length) return '<span class="stream-badge">▶ ' + escapeHtml(data.flatrate[0]) + (data.flatrate.length > 1 ? " +" + (data.flatrate.length - 1) : "") + '</span>';
+  if (data.rent && data.rent.length) return '<span class="stream-badge">$ Rent</span>';
+  if (data.buy && data.buy.length) return '<span class="stream-badge">$ Buy</span>';
+  return '<span class="stream-badge">No streaming data</span>';
+}
+
+/* ---------- toast ---------- */
+let toastTimer = null;
+function showToast(message, duration) {
+  const t = document.getElementById("toast");
+  t.textContent = message || "✓ Saved";
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), duration || 1800);
+}
+
+function renderSavedAt() {
+  const el = document.getElementById("savedAt");
+  if (!state.updatedAt) { el.textContent = "Not saved yet"; return; }
+  const d = new Date(state.updatedAt);
+  el.textContent = "Last saved " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " at " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+/* ---------- UI state ---------- */
+let openCats = new Set();
+let activeTab = "All";
+let searchQuery = "";
+
+// Tabs are organized by genre ("type of show"), which cuts across the
+// underlying group (Series/Program, Performance, Directing, Writing) since
+// e.g. "Lead Actor In A Drama Series" and "Directing For A Drama Series"
+// should both show up under the Drama tab.
+const TYPES = ["All", "Drama", "Comedy", "Limited/Anthology", "Variety", "Reality/Game Show", "Documentary", "Craft", "Other"];
+const TYPE_LABELS = {
+  "All": "All", "Drama": "Drama", "Comedy": "Comedy",
+  "Limited/Anthology": "Limited/Anthology", "Variety": "Variety",
+  "Reality/Game Show": "Reality/Game Show", "Documentary": "Documentary",
+  "Craft": "Craft", "Other": "Other",
+};
+const GROUP_LABELS = { "Series/Program": "Series & Specials", "Performance": "Performance", "Directing": "Directing", "Writing": "Writing", "Craft": "Craft" };
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Wraps every case-insensitive occurrence of the current search query in
+// <mark>, so results visually pop instead of you having to re-read every row.
+function highlightText(text, query) {
+  const safe = escapeHtml(text);
+  if (!query) return safe;
+  const q = query.trim();
+  if (!q) return safe;
+  const escapedQuery = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("(" + escapedQuery + ")", "ig");
+  return safe.replace(re, "<mark class=\"hl\">$1</mark>");
+}
+
+/* ---------- Focus Mode / hide-completed / streaming services ---------- */
+const FOCUS_MODE_KEY = "emmyTracker2026:focusMode";
+const HIDE_COMPLETED_KEY = "emmyTracker2026:hideCompleted";
+const SERVICES_KEY = "emmyTracker2026:services";
+const MILESTONE_KEY = "emmyTracker2026:milestones";
+
+// Focus Mode narrows down to the marquee scripted categories (Drama, Comedy,
+// Limited/Anthology). Everything else — Variety, Reality/Game Show,
+// Documentary, Craft, Other — is hidden until you toggle it off.
+const FOCUS_HIDDEN_TYPES = ["Variety", "Reality/Game Show", "Documentary", "Craft", "Other"];
+
+let focusMode = (function () {
+  const raw = localStorage.getItem(FOCUS_MODE_KEY);
+  return raw === null ? true : raw === "true";
+})();
+let hideCompleted = localStorage.getItem(HIDE_COMPLETED_KEY) === "true";
+
+let selectedServiceIds = [];
+try { selectedServiceIds = JSON.parse(localStorage.getItem(SERVICES_KEY) || "[]"); } catch (e) {}
+
+const SERVICES = [
+  { id: "netflix", label: "Netflix", match: ["netflix"] },
+  { id: "max", label: "Max", match: ["max"] },
+  { id: "hulu", label: "Hulu", match: ["hulu"] },
+  { id: "disney", label: "Disney+", match: ["disney"] },
+  { id: "appletv", label: "Apple TV+", match: ["apple tv"] },
+  { id: "prime", label: "Prime Video", match: ["prime video", "amazon"] },
+  { id: "peacock", label: "Peacock", match: ["peacock"] },
+  { id: "paramount", label: "Paramount+", match: ["paramount"] },
+];
+
+function getSelectedServiceObjs() {
+  return SERVICES.filter(s => selectedServiceIds.includes(s.id));
+}
+function providerMatchesService(providerName, service) {
+  const p = providerName.toLowerCase();
+  return service.match.some(m => p.includes(m));
+}
+
+function catProgress(cat) {
+  let done = 0;
+  cat.nominees.forEach((n, idx) => { if (isChecked(cat.id, idx)) done++; });
+  return { done, total: cat.nominees.length };
+}
+
+function overallProgress() {
+  let done = 0, total = 0;
+  CATEGORIES.forEach(cat => {
+    cat.nominees.forEach((n, idx) => { total++; if (isChecked(cat.id, idx)) done++; });
+  });
+  return { done, total };
+}
+
+function picksProgress() {
+  let predicted = 0, wanted = 0;
+  Object.keys(state.picks).forEach(catId => {
+    const p = state.picks[catId];
+    if (p && p.predicted != null) predicted++;
+    if (p && p.wanted != null) wanted++;
+  });
+  return { predicted, wanted };
+}
+
+function ringSvg(done, total, size, r, strokeWidth, extraClass) {
+  const c = 2 * Math.PI * r;
+  const pct = total > 0 ? done / total : 0;
+  const offset = c * (1 - pct);
+  const doneClass = total > 0 && done === total ? " done" : "";
+  return '<svg class="ring' + doneClass + (extraClass ? " " + extraClass : "") + '" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+    '<circle class="track" cx="' + size/2 + '" cy="' + size/2 + '" r="' + r + '" stroke-width="' + strokeWidth + '"></circle>' +
+    '<circle class="prog" cx="' + size/2 + '" cy="' + size/2 + '" r="' + r + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + c.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '" transform="rotate(-90 ' + size/2 + ' ' + size/2 + ')"></circle>' +
+    '</svg>';
+}
+
+function matchesSearch(cat) {
+  if (!searchQuery) return true;
+  const q = searchQuery.toLowerCase();
+  if (cat.label.toLowerCase().includes(q)) return true;
+  return cat.nominees.some(n => n.display.toLowerCase().includes(q) || (n.episode && n.episode.toLowerCase().includes(q)));
+}
+
+function filteredCategories() {
+  return CATEGORIES.filter(cat => {
+    if (focusMode && FOCUS_HIDDEN_TYPES.includes(cat.type)) return false;
+    if (activeTab !== "All" && cat.type !== activeTab) return false;
+    if (hideCompleted) {
+      const { done, total } = catProgress(cat);
+      if (total > 0 && done === total) return false;
+    }
+    return matchesSearch(cat);
+  });
+}
+
+function pickButtonsHtml(catId, idx) {
+  const predicted = getPredicted(catId) === idx;
+  const wanted = getWanted(catId) === idx;
+  return '<span class="pick-btn' + (predicted ? " active predicted" : "") + '" data-pick="predicted" data-cat="' + escapeHtml(catId) + '" data-idx="' + idx + '" title="Predicted to win">🔮</span>' +
+         '<span class="pick-btn' + (wanted ? " active wanted" : "") + '" data-pick="wanted" data-cat="' + escapeHtml(catId) + '" data-idx="' + idx + '" title="Who I want to win">❤️</span>';
+}
+
+/* ---------- Up Next ---------- */
+const upNextRequested = new Set();
+
+function computeUpNextCandidates(limit) {
+  const shows = Object.keys(SHOW_INDEX).map(title => {
+    const refs = SHOW_INDEX[title];
+    const total = refs.length;
+    const watched = refs.filter(r => isChecked(r.catId, r.idx)).length;
+    return { title, total, watched, unwatched: total - watched };
+  }).filter(s => s.unwatched > 0);
+  shows.sort((a, b) => b.total - a.total || a.title.localeCompare(b.title));
+  return shows.slice(0, limit);
+}
+
+function renderUpNext() {
+  const scroll = document.getElementById("upnextScroll");
+  if (!scroll) return;
+  const candidates = computeUpNextCandidates(12);
+
+  // Bounded prefetch: only ever attach one resolve-listener per title, so
+  // repeated renders never re-trigger (fetchStreaming itself is cached, but
+  // without this guard the .then callback would keep re-firing forever).
+  candidates.forEach(c => {
+    if (!upNextRequested.has(c.title)) {
+      upNextRequested.add(c.title);
+      fetchStreaming(c.title).then(() => renderUpNext());
+    }
+  });
+
+  const services = getSelectedServiceObjs();
+  const ranked = candidates.map(c => {
+    const data = streamCache[c.title];
+    const onService = services.length > 0 && !!data && !!data.flatrate &&
+      data.flatrate.some(p => services.some(s => providerMatchesService(p, s)));
+    return Object.assign({}, c, { onService });
+  });
+  ranked.sort((a, b) => (b.onService - a.onService) || (b.total - a.total));
+
+  if (ranked.length === 0) {
+    scroll.innerHTML = '<div class="upnext-empty">You\'re caught up — nothing left to watch 🎉</div>';
+    return;
+  }
+
+  scroll.innerHTML = ranked.map(c => {
+    return '<div class="upnext-card" data-show="' + escapeHtml(c.title) + '">' +
+      posterHtmlFor(c.title, "lg") +
+      '<div class="upnext-card-title">' + escapeHtml(c.title) + '</div>' +
+      '<div class="upnext-card-sub">' + c.unwatched + ' of ' + c.total + ' left' +
+        (c.onService ? ' · <span class="upnext-onservice">on your services</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  scroll.querySelectorAll(".upnext-card").forEach(el => {
+    el.addEventListener("click", () => openDetail(el.getAttribute("data-show")));
+  });
+}
+
+function openServicesModal() {
+  const detail = document.getElementById("detail");
+  const overlay = document.getElementById("overlay");
+  function render() {
+    detail.innerHTML =
+      '<div class="detail-head">' +
+        '<div style="flex:1"><h2>Your streaming services</h2>' +
+        '<div class="detail-sub">Up Next will prioritize shows available on services you pick.</div></div>' +
+        '<div class="detail-close" id="detailClose">✕</div>' +
+      '</div>' +
+      '<div class="service-grid">' + SERVICES.map(s =>
+        '<div class="service-chip' + (selectedServiceIds.includes(s.id) ? " active" : "") + '" data-service="' + s.id + '">' + escapeHtml(s.label) + '</div>'
+      ).join("") + '</div>';
+    detail.querySelectorAll(".service-chip").forEach(el => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-service");
+        const i = selectedServiceIds.indexOf(id);
+        if (i === -1) selectedServiceIds.push(id); else selectedServiceIds.splice(i, 1);
+        try { localStorage.setItem(SERVICES_KEY, JSON.stringify(selectedServiceIds)); } catch (e) {}
+        render();
+        renderUpNext();
+      });
+    });
+    document.getElementById("detailClose").addEventListener("click", closeDetail);
+  }
+  render();
+  overlay.classList.add("show");
+}
+
+/* ---------- countdown ---------- */
+const CEREMONY_DATE = new Date("2026-09-14T20:00:00-04:00"); // 78th Emmys, NBC/Peacock
+function renderCountdown() {
+  const el = document.getElementById("countdown");
+  if (!el) return;
+  const diffMs = CEREMONY_DATE - new Date();
+  if (diffMs <= 0) { el.textContent = "🏆 It\'s Emmy night!"; return; }
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  el.textContent = "📅 " + days + " day" + (days === 1 ? "" : "s") + " until the Emmys (Sep 14)";
+}
+
+/* ---------- completion celebrations ---------- */
+let completionSnapshot = {};
+let initialRenderDone = false;
+
+const CONFETTI_COLORS = ["#d4af37", "#e0568c", "#3fb950", "#f2f1ec", "#8a7326"];
+function burstConfetti(count) {
+  const layer = document.getElementById("confettiLayer");
+  if (!layer) return;
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = (Math.random() * 100) + "vw";
+    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.animationDelay = (Math.random() * 0.3) + "s";
+    piece.style.animationDuration = (1 + Math.random() * 0.6) + "s";
+    layer.appendChild(piece);
+    setTimeout(() => piece.remove(), 2000);
+  }
+}
+
+function celebrateCategory(catId) {
+  document.querySelectorAll(".cat-card").forEach(card => {
+    if (card.dataset.catCard === catId) {
+      card.classList.add("celebrate");
+      setTimeout(() => card.classList.remove("celebrate"), 900);
+    }
+  });
+  burstConfetti(20);
+}
+
+function checkCategoryCompletions() {
+  CATEGORIES.forEach(cat => {
+    const { done, total } = catProgress(cat);
+    const isDone = total > 0 && done === total;
+    const wasDone = completionSnapshot[cat.id];
+    if (isDone && wasDone === false) celebrateCategory(cat.id);
+    completionSnapshot[cat.id] = isDone;
+  });
+}
+
+function milestoneMessage(t) {
+  if (t === 100) return "🏆 All caught up — every nomination watched!";
+  return "🎉 " + t + "% of nominations watched!";
+}
+
+function checkOverallMilestones(silent) {
+  const { done, total } = overallProgress();
+  if (total === 0) return;
+  const pct = (done / total) * 100;
+  const thresholds = [25, 50, 75, 100];
+  let shown = [];
+  try { shown = JSON.parse(localStorage.getItem(MILESTONE_KEY) || "[]"); } catch (e) {}
+  let changed = false;
+  thresholds.forEach(t => {
+    if (pct >= t && !shown.includes(t)) {
+      shown.push(t);
+      changed = true;
+      if (!silent) {
+        showToast(milestoneMessage(t), 2400);
+        if (t === 100) burstConfetti(60);
+      }
+    }
+  });
+  if (changed) {
+    try { localStorage.setItem(MILESTONE_KEY, JSON.stringify(shown)); } catch (e) {}
+  }
+}
+
+/* ---------- render ---------- */
+function renderTabs() {
+  const wrap = document.getElementById("tabs");
+  let visibleTypes = TYPES.filter(t => t !== "Other" || CATEGORIES.some(c => c.type === "Other"));
+  if (focusMode) visibleTypes = visibleTypes.filter(t => !FOCUS_HIDDEN_TYPES.includes(t));
+  wrap.innerHTML = visibleTypes.map(t => {
+    const count = t === "All"
+      ? CATEGORIES.filter(c => !focusMode || !FOCUS_HIDDEN_TYPES.includes(c.type)).length
+      : CATEGORIES.filter(c => c.type === t).length;
+    return '<div class="tab' + (activeTab === t ? " active" : "") + '" data-tab="' + escapeHtml(t) + '">' + TYPE_LABELS[t] + ' (' + count + ')</div>';
+  }).join("");
+  wrap.querySelectorAll(".tab").forEach(el => {
+    el.addEventListener("click", () => { activeTab = el.getAttribute("data-tab"); renderAll(); });
+  });
+}
+
+function renderFilterPills() {
+  const focusBtn = document.getElementById("focusModeToggle");
+  const hideBtn = document.getElementById("hideCompletedToggle");
+  if (focusBtn) focusBtn.classList.toggle("active", focusMode);
+  if (hideBtn) hideBtn.classList.toggle("active", hideCompleted);
+}
+
+function renderOverall() {
+  const { done, total } = overallProgress();
+  document.getElementById("overallCount").textContent = done + " / " + total;
+  const ringHtml = ringSvg(done, total, 52, 22, 5);
+  document.getElementById("overallRing").outerHTML = ringHtml.replace('class="ring', 'id="overallRing" class="ring');
+  const { predicted, wanted } = picksProgress();
+  document.getElementById("picksSummary").textContent = "🔮 " + predicted + " / " + CATEGORIES.length + " predicted · ❤️ " + wanted + " / " + CATEGORIES.length + " picked";
+  renderSavedAt();
+}
+
+function renderCatList() {
+  const cats = filteredCategories();
+  const listEl = document.getElementById("catList");
+  const emptyEl = document.getElementById("emptyState");
+  if (cats.length === 0) {
+    listEl.innerHTML = "";
+    emptyEl.style.display = "block";
+    return;
+  }
+  emptyEl.style.display = "none";
+
+  listEl.innerHTML = cats.map(cat => {
+    const { done, total } = catProgress(cat);
+    const isOpen = openCats.has(cat.id);
+    const ring = ringSvg(done, total, 34, 14, 3.5);
+    const hasPredicted = getPredicted(cat.id) != null;
+    const hasWanted = getWanted(cat.id) != null;
+    const dots = (hasPredicted ? '<span class="cat-pick-dot">🔮</span>' : '') + (hasWanted ? '<span class="cat-pick-dot">❤️</span>' : '');
+    let nomHtml = "";
+    if (isOpen) {
+      const visibleNoms = cat.nominees
+        .map((n, idx) => ({ n, idx }))
+        .filter(({ idx }) => !(hideCompleted && isChecked(cat.id, idx)));
+      const hiddenCount = cat.nominees.length - visibleNoms.length;
+      const rowsHtml = visibleNoms.map(({ n, idx }) => {
+        const checked = isChecked(cat.id, idx);
+        const film = extractFilm(n.display);
+        const noms = SHOW_INDEX[film] || [];
+        const showLink = noms.length > 1 ? '<span class="nom-link" data-show="' + escapeHtml(film) + '">' + noms.length + ' noms &rsaquo;</span>' : "";
+        const cached = streamCache[film];
+        const badge = cached ? streamBadgeHtml(cached) : "";
+        const episodeHtml = n.episode ? '<div class="nom-episode">"' + highlightText(n.episode, searchQuery) + '"</div>' : "";
+        return '<div class="nom-row" data-cat="' + escapeHtml(cat.id) + '" data-idx="' + idx + '" data-film="' + escapeHtml(film) + '">' +
+          '<div class="nom-check' + (checked ? " checked" : "") + '" data-cat="' + escapeHtml(cat.id) + '" data-idx="' + idx + '">' + (checked ? "✓" : "") + '</div>' +
+          '<span class="poster-slot">' + posterHtmlFor(film, "sm") + '</span>' +
+          '<div class="nom-body">' +
+            '<div class="nom-text' + (checked ? " checked" : "") + '">' + highlightText(n.display, searchQuery) + '</div>' +
+            episodeHtml +
+            '<div class="nom-meta">' + pickButtonsHtml(cat.id, idx) + '<span class="stream-slot">' + badge + '</span>' + showLink + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join("");
+      const hiddenNote = hiddenCount > 0 ? '<div class="hidden-note">' + hiddenCount + ' watched (hidden)</div>' : "";
+      nomHtml = '<div class="nom-list">' + rowsHtml + hiddenNote + '</div>';
+    }
+    return '<div class="cat-card' + (isOpen ? " open" : "") + '" data-cat-card="' + escapeHtml(cat.id) + '">' +
+      '<div class="cat-head" data-toggle="' + escapeHtml(cat.id) + '">' +
+        '<div class="cat-icon">' + cat.icon + '</div>' +
+        '<div class="cat-info"><div class="name">' + highlightText(cat.label, searchQuery) + '</div><div class="grp">' + GROUP_LABELS[cat.group] + dots + '</div></div>' +
+        '<div class="cat-count">' + done + '/' + total + '</div>' +
+        ring +
+        '<div class="chev">▸</div>' +
+      '</div>' +
+      nomHtml +
+    '</div>';
+  }).join("");
+
+  // wire up interactions
+  listEl.querySelectorAll("[data-toggle]").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-toggle");
+      if (openCats.has(id)) {
+        openCats.delete(id);
+      } else {
+        openCats.add(id);
+        const cat = CATEGORIES.find(c => c.id === id);
+        if (cat) prefetchCategory(cat);
+      }
+      renderAll();
+    });
+  });
+
+  listEl.querySelectorAll(".nom-check").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const catId = el.getAttribute("data-cat");
+      const idx = parseInt(el.getAttribute("data-idx"), 10);
+      const cat = CATEGORIES.find(c => c.id === catId);
+      const film = extractFilm(cat.nominees[idx].display);
+      const newVal = !isChecked(catId, idx);
+      cascadeFilm(film, newVal);
+    });
+  });
+
+  listEl.querySelectorAll(".nom-link").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openDetail(el.getAttribute("data-show"));
+    });
+  });
+
+  listEl.querySelectorAll(".pick-btn").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const catId = el.getAttribute("data-cat");
+      const idx = parseInt(el.getAttribute("data-idx"), 10);
+      const type = el.getAttribute("data-pick");
+      if (type === "predicted") setPredicted(catId, idx); else setWanted(catId, idx);
+      renderAll();
+    });
+  });
+}
+
+function renderAll() {
+  renderTabs();
+  renderFilterPills();
+  renderOverall();
+  renderCountdown();
+  renderCatList();
+  renderUpNext();
+  if (!initialRenderDone) {
+    CATEGORIES.forEach(cat => {
+      const { done, total } = catProgress(cat);
+      completionSnapshot[cat.id] = total > 0 && done === total;
+    });
+    checkOverallMilestones(true);
+    initialRenderDone = true;
+  } else {
+    checkCategoryCompletions();
+    checkOverallMilestones(false);
+  }
+}
+
+/* ---------- detail view ---------- */
+function openDetail(showTitle) {
+  const refs = SHOW_INDEX[showTitle] || [];
+  const overlay = document.getElementById("overlay");
+  const detail = document.getElementById("detail");
+
+  function render() {
+    const allChecked = refs.length > 0 && refs.every(r => isChecked(r.catId, r.idx));
+    const rowsHtml = refs.map(r => {
+      const cat = CATEGORIES.find(c => c.id === r.catId);
+      const n = cat.nominees[r.idx];
+      const checked = isChecked(r.catId, r.idx);
+      const episodeHtml = n.episode ? '<div class="nom-episode">"' + escapeHtml(n.episode) + '"</div>' : "";
+      return '<div class="detail-nom-row">' +
+        '<div class="nom-check' + (checked ? " checked" : "") + '" data-cat="' + escapeHtml(r.catId) + '" data-idx="' + r.idx + '">' + (checked ? "✓" : "") + '</div>' +
+        '<div class="txt">' +
+          '<div class="cat">' + cat.icon + ' ' + escapeHtml(cat.label) + '</div>' +
+          '<div class="' + (checked ? "nom-text checked" : "nom-text") + '">' + escapeHtml(n.display) + '</div>' + episodeHtml +
+          '<div class="nom-meta">' + pickButtonsHtml(r.catId, r.idx) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    detail.innerHTML =
+      '<div class="detail-head">' +
+        '<span class="detail-poster-slot">' + posterHtmlFor(showTitle, "xl") + '</span>' +
+        '<div style="flex:1; min-width:0;">' +
+          '<h2>' + escapeHtml(showTitle) + '</h2>' +
+          '<div class="detail-sub">' + refs.length + ' nomination' + (refs.length === 1 ? "" : "s") + '</div>' +
+        '</div>' +
+        '<div class="detail-close" id="detailClose">✕</div>' +
+      '</div>' +
+      '<div class="stream-section">' +
+        '<div class="lbl">Where to watch</div>' +
+        '<div id="streamArea"><span class="stream-empty">Loading…</span></div>' +
+      '</div>' +
+      '<button class="mark-all-btn' + (allChecked ? " done" : "") + '" id="markAllBtn">' + (allChecked ? "✓ All marked as seen" : "Mark all " + refs.length + " as seen") + '</button>' +
+      '<div class="detail-noms">' + rowsHtml + '</div>';
+
+    detail.querySelectorAll(".nom-check").forEach(el => {
+      el.addEventListener("click", () => {
+        const catId = el.getAttribute("data-cat");
+        const idx = parseInt(el.getAttribute("data-idx"), 10);
+        const newVal = !isChecked(catId, idx);
+        if (newVal) {
+          // Checking a nomination on cascades to every other nomination for
+          // this show, same as checking it from the main category list.
+          cascadeFilm(showTitle, true);
+          render();
+        } else {
+          // Unchecking is single-entry only, so you can carve out "I haven't
+          // actually seen this specific episode" without undoing the rest.
+          setChecked(catId, idx, false);
+          saveState();
+          render();
+          renderCatList();
+          renderOverall();
+          renderUpNext();
+        }
+      });
+    });
+
+    detail.querySelectorAll(".pick-btn").forEach(el => {
+      el.addEventListener("click", () => {
+        const catId = el.getAttribute("data-cat");
+        const idx = parseInt(el.getAttribute("data-idx"), 10);
+        const type = el.getAttribute("data-pick");
+        if (type === "predicted") setPredicted(catId, idx); else setWanted(catId, idx);
+        render();
+        renderCatList();
+        renderOverall();
+      });
+    });
+
+    document.getElementById("markAllBtn").addEventListener("click", () => {
+      cascadeFilm(showTitle, true);
+      render();
+    });
+
+    document.getElementById("detailClose").addEventListener("click", closeDetail);
+
+    fetchStreaming(showTitle).then(data => {
+      const posterSlot = detail.querySelector(".detail-poster-slot");
+      if (posterSlot) posterSlot.innerHTML = posterHtmlFor(showTitle, "xl");
+      const area = document.getElementById("streamArea");
+      if (!area) return;
+      const chips = [];
+      (data.flatrate || []).forEach(p => chips.push('<span class="provider-chip">▶ ' + escapeHtml(p) + '</span>'));
+      (data.rent || []).forEach(p => chips.push('<span class="provider-chip">$ ' + escapeHtml(p) + ' (rent)</span>'));
+      (data.buy || []).forEach(p => chips.push('<span class="provider-chip">$ ' + escapeHtml(p) + ' (buy)</span>'));
+      if (chips.length === 0) {
+        area.innerHTML = '<span class="stream-empty">No streaming info found.</span>';
+      } else {
+        area.innerHTML = '<div class="provider-chips">' + chips.join("") + '</div>' +
+          (data.link ? '<a class="stream-link" href="' + escapeHtml(data.link) + '" target="_blank" rel="noopener">Open on JustWatch ›</a>' : "");
+      }
+    });
+  }
+
+  render();
+  overlay.classList.add("show");
+}
+
+function closeDetail() {
+  document.getElementById("overlay").classList.remove("show");
+}
+document.getElementById("overlay").addEventListener("click", (e) => {
+  if (e.target.id === "overlay") closeDetail();
+});
+
+/* ---------- search ---------- */
+const searchInputEl = document.getElementById("searchInput");
+const searchClearEl = document.getElementById("searchClear");
+searchInputEl.addEventListener("input", (e) => {
+  searchQuery = e.target.value.trim();
+  searchClearEl.classList.toggle("show", searchQuery.length > 0);
+  if (searchQuery) {
+    // auto-open categories that match so results are visible
+    filteredCategories().forEach(c => openCats.add(c.id));
+  }
+  renderCatList();
+});
+searchClearEl.addEventListener("click", () => {
+  searchInputEl.value = "";
+  searchQuery = "";
+  searchClearEl.classList.remove("show");
+  renderCatList();
+  searchInputEl.focus();
+});
+
+/* ---------- collapse all ---------- */
+document.getElementById("collapseAllBtn").addEventListener("click", () => {
+  openCats.clear();
+  renderCatList();
+});
+
+/* ---------- filter pills + services modal wiring ---------- */
+document.getElementById("focusModeToggle").addEventListener("click", () => {
+  focusMode = !focusMode;
+  try { localStorage.setItem(FOCUS_MODE_KEY, String(focusMode)); } catch (e) {}
+  if (focusMode && FOCUS_HIDDEN_TYPES.includes(activeTab)) activeTab = "All";
+  renderAll();
+});
+document.getElementById("hideCompletedToggle").addEventListener("click", () => {
+  hideCompleted = !hideCompleted;
+  try { localStorage.setItem(HIDE_COMPLETED_KEY, String(hideCompleted)); } catch (e) {}
+  renderAll();
+});
+document.getElementById("manageServicesBtn").addEventListener("click", openServicesModal);
+
+/* ---------- init ---------- */
+renderAll();
+</script>
+</body>
+</html>
