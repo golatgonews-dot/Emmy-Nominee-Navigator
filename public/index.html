@@ -259,10 +259,31 @@
   /* streaming services modal */
   .service-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .service-chip {
+    display: flex; align-items: center; gap: 8px;
     padding: 8px 14px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--border);
     font-size: 13px; cursor: pointer; user-select: none;
   }
-  .service-chip.active { background: rgba(212,175,55,.15); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+  .service-chip .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,.25); }
+  .service-chip.active { font-weight: 600; }
+  .service-chip .chip-remove {
+    margin-left: 2px; color: var(--muted); font-size: 11px; line-height: 1;
+    padding: 2px; border-radius: 50%;
+  }
+  .service-chip .chip-remove:hover { color: var(--text); }
+
+  .service-search {
+    width: 100%; margin-top: 4px; padding: 10px 12px; border-radius: 10px;
+    background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    font-size: 13px; box-sizing: border-box;
+  }
+  .service-search:focus { outline: none; border-color: var(--gold); }
+  .service-search-results { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .service-search-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+    font-size: 13px; cursor: pointer;
+  }
+  .service-search-row:hover { background: var(--card-2); }
+  .service-search-logo { width: 20px; height: 20px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
 
   /* completion celebration */
   #confettiLayer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
@@ -437,7 +458,14 @@ function fetchStreaming(title) {
   if (streamInFlight[title]) return streamInFlight[title];
   const p = fetch("/.netlify/functions/streaming?title=" + encodeURIComponent(title))
     .then(r => r.json())
-    .then(data => { streamCache[title] = data; delete streamInFlight[title]; return data; })
+    .then(data => {
+      // Collapse tier/variant provider names (e.g. "Netflix Standard with Ads")
+      // down to their canonical brand label so chips don't duplicate.
+      data.flatrate = canonicalizeProviders(data.flatrate);
+      data.rent = canonicalizeProviders(data.rent);
+      data.buy = canonicalizeProviders(data.buy);
+      streamCache[title] = data; delete streamInFlight[title]; return data;
+    })
     .catch(() => { const empty = { flatrate: [], rent: [], buy: [], link: null }; streamCache[title] = empty; delete streamInFlight[title]; return empty; });
   streamInFlight[title] = p;
   return p;
@@ -534,6 +562,7 @@ function highlightText(text, query) {
 const FOCUS_MODE_KEY = "emmyTracker2026:focusMode";
 const HIDE_COMPLETED_KEY = "emmyTracker2026:hideCompleted";
 const SERVICES_KEY = "emmyTracker2026:services";
+const CUSTOM_SERVICES_KEY = "emmyTracker2026:customServices";
 const MILESTONE_KEY = "emmyTracker2026:milestones";
 
 // Focus Mode narrows down to the marquee scripted categories (Drama, Comedy,
@@ -550,23 +579,74 @@ let hideCompleted = localStorage.getItem(HIDE_COMPLETED_KEY) === "true";
 let selectedServiceIds = [];
 try { selectedServiceIds = JSON.parse(localStorage.getItem(SERVICES_KEY) || "[]"); } catch (e) {}
 
+// Services a user adds from the full TMDB catalog search, beyond the 8
+// curated ones below. Stored as {id, label, match} so they behave the same
+// as curated SERVICES everywhere they're used (matching, Up Next, etc.).
+let customServices = [];
+try { customServices = JSON.parse(localStorage.getItem(CUSTOM_SERVICES_KEY) || "[]"); } catch (e) {}
+function saveCustomServices() {
+  try { localStorage.setItem(CUSTOM_SERVICES_KEY, JSON.stringify(customServices)); } catch (e) {}
+}
+
 const SERVICES = [
-  { id: "netflix", label: "Netflix", match: ["netflix"] },
-  { id: "max", label: "Max", match: ["max"] },
-  { id: "hulu", label: "Hulu", match: ["hulu"] },
-  { id: "disney", label: "Disney+", match: ["disney"] },
-  { id: "appletv", label: "Apple TV+", match: ["apple tv"] },
-  { id: "prime", label: "Prime Video", match: ["prime video", "amazon"] },
-  { id: "peacock", label: "Peacock", match: ["peacock"] },
-  { id: "paramount", label: "Paramount+", match: ["paramount"] },
+  { id: "netflix", label: "Netflix", match: ["netflix"], color: "#E50914" },
+  { id: "max", label: "HBO Max", match: ["max", "hbo max"], color: "#000000" },
+  { id: "hulu", label: "Hulu", match: ["hulu"], color: "#1CE783" },
+  { id: "disney", label: "Disney+", match: ["disney"], color: "#0FA8A8" },
+  { id: "appletv", label: "Apple TV+", match: ["apple tv"], color: "#8E8E93" },
+  { id: "prime", label: "Prime Video", match: ["prime video", "amazon"], color: "#00A8E1" },
+  { id: "peacock", label: "Peacock", match: ["peacock"], color: "#F37021" },
+  { id: "paramount", label: "Paramount+", match: ["paramount"], color: "#2864F0" },
 ];
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+}
+// For active-state borders/tints (not the brand dot), swap colors too dark to
+// read against this app's near-black UI for a light neutral instead.
+function activeAccent(hex) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance < 40 ? "#c8c8cf" : hex;
+}
 
 function getSelectedServiceObjs() {
-  return SERVICES.filter(s => selectedServiceIds.includes(s.id));
+  return SERVICES.concat(customServices).filter(s => selectedServiceIds.includes(s.id));
+}
+
+// Full TMDB provider catalog, fetched once and cached in memory for the
+// "search for another service" box in the services picker.
+let providerCatalog = null;
+let providerCatalogPromise = null;
+function fetchProviderCatalog() {
+  if (providerCatalog) return Promise.resolve(providerCatalog);
+  if (providerCatalogPromise) return providerCatalogPromise;
+  providerCatalogPromise = fetch("/.netlify/functions/providers")
+    .then(r => r.json())
+    .then(list => { providerCatalog = Array.isArray(list) ? list : []; return providerCatalog; })
+    .catch(() => { providerCatalog = []; return providerCatalog; });
+  return providerCatalogPromise;
 }
 function providerMatchesService(providerName, service) {
   const p = providerName.toLowerCase();
   return service.match.some(m => p.includes(m));
+}
+function canonicalizeProviders(list) {
+  if (!list || !list.length) return [];
+  const seen = new Set();
+  const out = [];
+  list.forEach(raw => {
+    const match = SERVICES.find(s => providerMatchesService(raw, s));
+    const label = match ? match.label : raw;
+    if (!seen.has(label)) { seen.add(label); out.push(label); }
+  });
+  return out;
 }
 
 function catProgress(cat) {
@@ -691,22 +771,102 @@ function renderUpNext() {
 function openServicesModal() {
   const detail = document.getElementById("detail");
   const overlay = document.getElementById("overlay");
-  function render() {
+  let searchQuery = "";
+
+  function toggleSelected(id) {
+    const i = selectedServiceIds.indexOf(id);
+    if (i === -1) selectedServiceIds.push(id); else selectedServiceIds.splice(i, 1);
+    try { localStorage.setItem(SERVICES_KEY, JSON.stringify(selectedServiceIds)); } catch (e) {}
+  }
+
+  function removeCustomService(id) {
+    customServices = customServices.filter(s => s.id !== id);
+    selectedServiceIds = selectedServiceIds.filter(sid => sid !== id);
+    saveCustomServices();
+    try { localStorage.setItem(SERVICES_KEY, JSON.stringify(selectedServiceIds)); } catch (e) {}
+  }
+
+  function chipHtml(s, active, removable) {
+    const accent = activeAccent(s.color || "#9a99a6");
+    const activeStyle = active ? ' style="border-color:' + accent + '; background:' + hexToRgba(accent, 0.16) + ';"' : "";
+    return '<div class="service-chip' + (active ? " active" : "") + '" data-service="' + escapeHtml(s.id) + '"' + activeStyle + '>' +
+      '<span class="dot" style="background:' + (s.color || "#9a99a6") + ';"></span>' +
+      '<span class="chip-label">' + escapeHtml(s.label) + '</span>' +
+      (removable ? '<span class="chip-remove" data-remove="' + escapeHtml(s.id) + '">✕</span>' : "") +
+    '</div>';
+  }
+
+  function render(caretPos) {
+    const knownIds = new Set(SERVICES.map(s => s.id).concat(customServices.map(s => s.id)));
+    const results = searchQuery && providerCatalog
+      ? providerCatalog.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) && !knownIds.has("tmdb-" + p.id)).slice(0, 8)
+      : [];
+
     detail.innerHTML =
       '<div class="detail-head">' +
         '<div style="flex:1"><h2>Your streaming services</h2>' +
         '<div class="detail-sub">Up Next will prioritize shows available on services you pick.</div></div>' +
         '<div class="detail-close" id="detailClose">✕</div>' +
       '</div>' +
-      '<div class="service-grid">' + SERVICES.map(s =>
-        '<div class="service-chip' + (selectedServiceIds.includes(s.id) ? " active" : "") + '" data-service="' + s.id + '">' + escapeHtml(s.label) + '</div>'
-      ).join("") + '</div>';
+      '<div class="service-grid">' + SERVICES.map(s => chipHtml(s, selectedServiceIds.includes(s.id), false)).join("") + '</div>' +
+      (customServices.length
+        ? '<div class="about-section-lbl" style="margin-top:14px;">Added by you</div>' +
+          '<div class="service-grid">' + customServices.map(s => chipHtml(s, selectedServiceIds.includes(s.id), true)).join("") + '</div>'
+        : "") +
+      '<div class="about-section-lbl" style="margin-top:16px;">Add another service</div>' +
+      '<input type="text" id="serviceSearchInput" class="service-search" placeholder="Search the full provider list…" value="' + escapeHtml(searchQuery) + '">' +
+      '<div class="service-search-results">' +
+        (searchQuery && !providerCatalog ? '<div class="stream-empty">Loading…</div>' : "") +
+        results.map(p =>
+          '<div class="service-search-row" data-add="' + p.id + '" data-name="' + escapeHtml(p.name) + '">' +
+            (p.logo ? '<img src="' + escapeHtml(p.logo) + '" alt="" class="service-search-logo">' : '<span class="dot" style="background:#9a99a6;"></span>') +
+            escapeHtml(p.name) +
+          '</div>'
+        ).join("") +
+        (searchQuery && providerCatalog && results.length === 0 ? '<div class="stream-empty">No matches</div>' : "") +
+      '</div>';
+
     detail.querySelectorAll(".service-chip").forEach(el => {
+      el.addEventListener("click", (e) => {
+        if (e.target.classList.contains("chip-remove")) return;
+        toggleSelected(el.getAttribute("data-service"));
+        render();
+        renderUpNext();
+      });
+    });
+    detail.querySelectorAll(".chip-remove").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeCustomService(el.getAttribute("data-remove"));
+        render();
+        renderUpNext();
+      });
+    });
+    const searchInput = document.getElementById("serviceSearchInput");
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      // Capture the caret from the live input before render() tears it down
+      // and rebuilds a fresh one — reading it after rebuild would always
+      // report position 0, which pushed the cursor to the start on every
+      // keystroke and made typed text appear reversed.
+      const caret = e.target.selectionStart;
+      render(caret);
+      fetchProviderCatalog().then(() => render(caret));
+    });
+    if (typeof caretPos === "number") {
+      searchInput.focus();
+      searchInput.setSelectionRange(caretPos, caretPos);
+    }
+    detail.querySelectorAll(".service-search-row").forEach(el => {
       el.addEventListener("click", () => {
-        const id = el.getAttribute("data-service");
-        const i = selectedServiceIds.indexOf(id);
-        if (i === -1) selectedServiceIds.push(id); else selectedServiceIds.splice(i, 1);
-        try { localStorage.setItem(SERVICES_KEY, JSON.stringify(selectedServiceIds)); } catch (e) {}
+        const id = "tmdb-" + el.getAttribute("data-add");
+        const name = el.getAttribute("data-name");
+        if (!customServices.some(s => s.id === id)) {
+          customServices.push({ id, label: name, match: [name.toLowerCase()], color: null });
+          saveCustomServices();
+        }
+        if (!selectedServiceIds.includes(id)) toggleSelected(id);
+        searchQuery = "";
         render();
         renderUpNext();
       });
