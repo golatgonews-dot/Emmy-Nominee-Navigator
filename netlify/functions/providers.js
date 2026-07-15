@@ -1,4 +1,4 @@
-const TMDB_API_KEY = "f1a4408c673a78e20fcca6fe42735280";
+const TMDB_API_KEY = process.env.TMDB_API_KEY; // env var — NEVER hardcode the key
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/w92";
 
