@@ -40,10 +40,16 @@
   }
   #app { max-width: 640px; margin: 0 auto; padding: 0 14px 90px; }
 
-  header.top {
+  /* Title, overall progress, and Up Next scroll away normally — only the
+     search/filter/tabs controls below stay pinned, so the checklist itself
+     gets the full screen on small devices instead of being crowded out. */
+  .hero { padding: 18px 0 4px; }
+
+  header.controls-bar {
     position: sticky; top: 0; z-index: 20;
-    background: linear-gradient(180deg, var(--bg) 80%, transparent);
-    padding: 18px 0 10px;
+    background: var(--bg);
+    padding: 10px 0 8px;
+    border-bottom: 1px solid var(--border);
   }
   .title-row { display: flex; align-items: center; gap: 16px; }
   .title-row h1 { font-size: 26px; margin: 0; font-weight: 700; letter-spacing: -0.2px; }
@@ -55,10 +61,12 @@
     border-radius: var(--radius); padding: 14px 16px; margin-top: 14px;
   }
   .overall .stats { flex: 1; }
-  .overall .stats .big { font-size: 22px; font-weight: 700; }
+  .overall .stats .big { font-size: 28px; font-weight: 700; line-height: 1.1; }
   .overall .stats .lbl { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .overall .context { color: var(--muted); font-size: 11px; margin-top: 1px; }
   .overall .saved { color: var(--muted); font-size: 11px; margin-top: 6px; }
-  .overall .picks-summary { color: var(--muted); font-size: 11px; margin-top: 3px; }
+  .overall .picks-summary { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .overall .nom-note { color: var(--muted); font-size: 11px; margin-top: 3px; }
 
   .search-wrap { margin-top: 12px; position: relative; }
   .search-wrap input {
@@ -305,7 +313,7 @@
 </head>
 <body>
 <div id="app">
-  <header class="top">
+  <div class="hero">
     <div class="title-row">
       <div style="font-size:44px; line-height:1;">🏆</div>
       <div>
@@ -315,17 +323,13 @@
     </div>
 
     <div class="overall">
-      <svg class="ring" id="overallRing" width="52" height="52" viewBox="0 0 52 52">
-        <circle class="track" cx="26" cy="26" r="22" stroke-width="5"></circle>
-        <circle class="prog" cx="26" cy="26" r="22" stroke-width="5"
-          stroke-dasharray="138.2" stroke-dashoffset="138.2"
-          transform="rotate(-90 26 26)"></circle>
-      </svg>
       <div class="stats">
-        <div class="big" id="overallCount">0 / 0</div>
-        <div class="lbl">nominations watched</div>
+        <div class="big" id="overallCount">0</div>
+        <div class="lbl">shows watched</div>
+        <div class="context" id="overallContext">0 nominated overall</div>
         <div class="countdown" id="countdown"></div>
         <div class="picks-summary" id="picksSummary">🔮 0 predicted · ❤️ 0 picked</div>
+        <div class="nom-note" id="nomNote">0 / 0 nominations checked</div>
         <div class="saved" id="savedAt">Not saved yet</div>
       </div>
     </div>
@@ -337,7 +341,9 @@
       </div>
       <div class="upnext-scroll" id="upnextScroll"></div>
     </div>
+  </div>
 
+  <header class="controls-bar">
     <div class="search-wrap">
       <input type="text" id="searchInput" placeholder="Search shows, people, categories…" />
       <span class="search-clear" id="searchClear">✕</span>
@@ -661,6 +667,19 @@ function overallProgress() {
     cat.nominees.forEach((n, idx) => { total++; if (isChecked(cat.id, idx)) done++; });
   });
   return { done, total };
+}
+
+// Headline metric: unique shows with at least one checked nomination, out of
+// all uniquely nominated shows. Nomination count is a poor proxy for "have I
+// watched this" since one heavily-nominated show can carry 20+ nominations
+// while most carry 1 — this tracks what you actually watch, show by show.
+function showsWatchedProgress() {
+  const titles = Object.keys(SHOW_INDEX);
+  let watched = 0;
+  titles.forEach(title => {
+    if (SHOW_INDEX[title].some(r => isChecked(r.catId, r.idx))) watched++;
+  });
+  return { watched, total: titles.length };
 }
 
 function picksProgress() {
@@ -1002,10 +1021,11 @@ function renderFilterPills() {
 }
 
 function renderOverall() {
+  const { watched, total: totalShows } = showsWatchedProgress();
+  document.getElementById("overallCount").textContent = String(watched);
+  document.getElementById("overallContext").textContent = totalShows + " nominated overall";
   const { done, total } = overallProgress();
-  document.getElementById("overallCount").textContent = done + " / " + total;
-  const ringHtml = ringSvg(done, total, 52, 22, 5);
-  document.getElementById("overallRing").outerHTML = ringHtml.replace('class="ring', 'id="overallRing" class="ring');
+  document.getElementById("nomNote").textContent = done + " / " + total + " nominations checked";
   const { predicted, wanted } = picksProgress();
   document.getElementById("picksSummary").textContent = "🔮 " + predicted + " / " + CATEGORIES.length + " predicted · ❤️ " + wanted + " / " + CATEGORIES.length + " picked";
   renderSavedAt();
