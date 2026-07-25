@@ -1,5 +1,3 @@
-
-Streaming · JS
 // streaming.js — per-title "Where to Watch" for the frontend.
 // Returns { flatrate, rent, buy, link, poster, matched }. flatrate is filtered to
 // native subscription apps only (no resellers/bundlers/ad-tiers); rent and buy are
