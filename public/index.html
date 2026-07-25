@@ -599,7 +599,7 @@ const SERVICES = [
   { id: "max", label: "HBO Max", match: ["max", "hbo max"], color: "#000000" },
   { id: "hulu", label: "Hulu", match: ["hulu"], color: "#1CE783" },
   { id: "disney", label: "Disney+", match: ["disney"], color: "#0FA8A8" },
-  { id: "appletv", label: "Apple TV+", match: ["apple tv"], color: "#8E8E93" },
+  { id: "appletv", label: "Apple TV", match: ["apple tv"], color: "#8E8E93" },
   { id: "prime", label: "Prime Video", match: ["prime video", "amazon"], color: "#00A8E1" },
   { id: "peacock", label: "Peacock", match: ["peacock"], color: "#F37021" },
   { id: "paramount", label: "Paramount+", match: ["paramount"], color: "#2864F0" },
@@ -641,7 +641,14 @@ function fetchProviderCatalog() {
 }
 function providerMatchesService(providerName, service) {
   const p = providerName.toLowerCase();
-  return service.match.some(m => p.includes(m));
+  // The backend already collapses every provider to one canonical label, and
+  // those labels are exactly the SERVICES labels — so an exact match is the
+  // reliable path. Substring is only the fallback for custom services added
+  // from the TMDB catalog. It has to stay a fallback: "max" is a substring of
+  // "Cinemax" and "amazon" is a substring of every "… Amazon Channel", so
+  // leading with it silently mislabels providers.
+  if (p === String(service.label || "").toLowerCase()) return true;
+  return service.match.some(m => p === m || p.startsWith(m + " "));
 }
 function canonicalizeProviders(list) {
   if (!list || !list.length) return [];
