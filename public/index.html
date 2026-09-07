@@ -310,12 +310,12 @@
     100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
   }
   /* Winner indicator */
-  .nominee.won {
+  .nom-text.won {
     border-left: 4px solid #ffd700;
     background: rgba(255, 215, 0, 0.08);
     padding-left: 8px;
   }
-  .nominee.won::before {
+  .nom-text.won::before {
     content: "★ ";
     color: #ffd700;
     font-weight: bold;
@@ -1086,7 +1086,7 @@ function renderCatList() {
           '<div class="nom-check' + (checked ? " checked" : "") + '" data-cat="' + escapeHtml(cat.id) + '" data-idx="' + idx + '">' + (checked ? "✓" : "") + '</div>' +
           '<span class="poster-slot">' + posterHtmlFor(film, "sm") + '</span>' +
           '<div class="nom-body">' +
-            '<div class="nom-text' + (checked ? " checked" : "") + '">' + highlightText(n.display, searchQuery) + '</div>' +
+            '<div class="nom-text' + (checked ? " checked" : "") + (n.won ? " won" : "") + '">' + highlightText(n.display, searchQuery) + '</div>' +
             episodeHtml +
             '<div class="nom-meta">' + pickButtonsHtml(cat.id, idx) + '<span class="stream-slot">' + badge + '</span>' + showLink + '</div>' +
           '</div>' +
