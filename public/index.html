@@ -321,6 +321,139 @@
     font-weight: bold;
     margin-right: 2px;
   }
+
+  .tab-content {
+    animation: fadeIn 0.3s;
+  }
+  
+  .report-container {
+    padding: 20px;
+    max-width: 1200px;
+  }
+  
+  .report-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  
+  .report-section h3 {
+    color: var(--gold);
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+  
+  .winners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .winner-card {
+    padding: 15px;
+    background: var(--card-2);
+    border-left: 4px solid var(--gold);
+    border-radius: 6px;
+    word-break: break-word;
+  }
+  
+  .winner-card .winner-title {
+    font-weight: bold;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  
+  .winner-card .winner-count {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .leaderboard-table th {
+    background: var(--card-2);
+    color: var(--gold);
+    font-weight: bold;
+  }
+  
+  .leaderboard-table tr:hover {
+    background: var(--card-2);
+  }
+  
+  .leaderboard-table td:first-child {
+    font-weight: 500;
+  }
+  
+  .leaderboard-table .award-count {
+    color: var(--gold);
+    font-weight: bold;
+  }
+  
+  .multi-winners-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .multi-winners-list li {
+    padding: 12px;
+    margin-bottom: 8px;
+    background: var(--card-2);
+    border-left: 3px solid var(--gold);
+    border-radius: 4px;
+  }
+  
+  .multi-winners-list .winner-name {
+    font-weight: bold;
+    color: var(--gold);
+  }
+  
+  .multi-winners-list .winner-credits {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  
+  .network-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+  }
+  
+  .network-card {
+    padding: 15px;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-align: center;
+  }
+  
+  .network-card .network-name {
+    font-weight: bold;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  
+  .network-card .network-count {
+    font-size: 24px;
+    color: var(--text);
+    font-weight: bold;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -1326,6 +1459,160 @@ document.getElementById("aboutBtn").addEventListener("click", openAboutModal);
 
 /* ---------- init ---------- */
 renderAll();
+
+  // Emmy Report Tab Functionality
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const tabName = e.target.dataset.tab;
+      
+      // Hide all tabs
+      document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      // Show selected tab
+      const tabElement = document.getElementById(tabName + '-tab');
+      if (tabElement) {
+        tabElement.style.display = 'block';
+        e.target.classList.add('active');
+        
+        // Generate Emmy Report if not already done
+        if (tabName === 'emmy-report' && !window.reportGenerated) {
+          generateEmmyReport();
+          window.reportGenerated = true;
+        }
+      }
+    });
+  });
+  
+  function generateEmmyReport() {
+    // Aggregate winners from CATEGORIES
+    const winners = {};
+    const winnersByNetwork = {};
+    const multiAwardWinners = {};
+    
+    CATEGORIES.forEach(category => {
+      category.nominees.forEach(nominee => {
+        if (nominee.won) {
+          const display = nominee.display;
+          
+          // Track award counts
+          if (!winners[display]) {
+            winners[display] = 0;
+          }
+          winners[display]++;
+          
+          // Track by network (if available in episode data)
+          // We'll estimate network from known shows
+          const network = getNetworkForShow(display);
+          if (!winnersByNetwork[network]) {
+            winnersByNetwork[network] = 0;
+          }
+          winnersByNetwork[network]++;
+        }
+      });
+    });
+    
+    // Get multi-award individuals from the hardcoded list
+    const multiAwardIndividuals = [
+      { name: "Judah Getz", count: 3, credits: "ADR Mixer" },
+      { name: "Stephen T. Colbert", count: 3, credits: "Executive Producer, Host, Writer" },
+      { name: "Steven Conrad", count: 3, credits: "Director, Executive Producer, Writer" },
+      { name: "Matthew Rhys", count: 3, credits: "Actor, Executive Producer" },
+      { name: "Larry Benjamin", count: 2, credits: "Re-Recording Mixer" },
+      { name: "Tim Hoogenakker", count: 2, credits: "Re-Recording Mixer" },
+      { name: "Mariska Hargitay", count: 2, credits: "Director, Producer" },
+      { name: "David Harbour", count: 2, credits: "Actor, Executive Producer" },
+      { name: "Noah Wyle", count: 2, credits: "Actor, Executive Producer" },
+      { name: "Denise Pizzini", count: 2, credits: "Production Designer" },
+      { name: "Dave Porter", count: 2, credits: "Composer, Scoring Mixer" },
+    ];
+    
+    // Populate Winners Grid
+    const winnersGrid = document.getElementById('winners-grid');
+    winnersGrid.innerHTML = '';
+    Object.entries(winners).sort((a, b) => b[1] - a[1]).forEach(([show, count]) => {
+      const card = document.createElement('div');
+      card.className = 'winner-card';
+      card.innerHTML = `
+        <div class="winner-title">★ ${show}</div>
+        <div class="winner-count">${count} ${count === 1 ? 'award' : 'awards'}</div>
+      `;
+      winnersGrid.appendChild(card);
+    });
+    
+    // Populate Leaderboard
+    const leaderboardBody = document.getElementById('leaderboard-body');
+    leaderboardBody.innerHTML = '';
+    Object.entries(winners)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([show, count]) => {
+        const network = getNetworkForShow(show);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${show}</td>
+          <td><span class="award-count">${count}</span></td>
+          <td>${network}</td>
+        `;
+        leaderboardBody.appendChild(row);
+      });
+    
+    // Populate Multi-Award Winners
+    const multiWinnersList = document.getElementById('multi-winners-list');
+    multiWinnersList.innerHTML = '';
+    multiAwardIndividuals.forEach(person => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="winner-name">★ ${person.name}</div>
+        <div class="winner-credits">${person.count} awards • ${person.credits}</div>
+      `;
+      multiWinnersList.appendChild(li);
+    });
+    
+    // Populate Network Breakdown
+    const networkBreakdown = document.getElementById('network-breakdown');
+    networkBreakdown.innerHTML = '';
+    Object.entries(winnersByNetwork)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([network, count]) => {
+        const card = document.createElement('div');
+        card.className = 'network-card';
+        card.innerHTML = `
+          <div class="network-name">${network}</div>
+          <div class="network-count">${count}</div>
+        `;
+        networkBreakdown.appendChild(card);
+      });
+  }
+  
+  function getNetworkForShow(showName) {
+    const networks = {
+      "Widow's Bay": "Apple TV",
+      "The Pitt": "HBO Max",
+      "Pluribus": "Apple TV",
+      "Spider-Noir": "Prime Video",
+      "The Boys": "Prime Video",
+      "Hacks": "HBO Max",
+      "Bridgerton": "Netflix",
+      "Beef": "Netflix",
+      "South Park": "Comedy Central",
+      "The Beast In Me": "Netflix",
+      "Stranger Things": "Netflix",
+      "A Knight Of The Seven Kingdoms": "HBO Max",
+      "DTF St. Louis": "HBO Max",
+      "Fallout": "Prime Video",
+      "Margo's Got Money Troubles": "Apple TV",
+      "Palm Royale": "Apple TV",
+      "The Traitors": "Peacock",
+      "Love On The Spectrum": "Netflix",
+      "The Muppet Show": "Disney+",
+      "The Diplomat": "Netflix",
+      "Leanne": "Netflix",
+      "Love Story: John F. Kennedy Jr. & Carolyn Bessette": "FX/Hulu",
+      "Remarkably Bright Creatures": "Netflix",
+    };
+    return networks[showName] || "Other";
+  }
+
 </script>
 </body>
 </html>
